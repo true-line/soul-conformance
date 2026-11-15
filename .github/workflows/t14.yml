@@ -1,0 +1,34 @@
+name: t14
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  t14:
+    # Public repository: hosted minutes are free here.
+    runs-on: ubuntu-24.04
+    steps:
+      # No external actions: checkout is plain git, and the runner's preinstalled Node runs the suite.
+      - name: checkout
+        env:
+          TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          REF: ${{ github.ref }}
+        run: |
+          git init -q .
+          git remote add origin "https://x-access-token:${TOKEN}@github.com/${REPO}.git"
+          git fetch -q --no-tags --depth 1 origin "+${REF}:refs/ci/head"
+          git checkout -q --detach refs/ci/head
+      - name: prepare pinned inputs
+        run: |
+          node --version
+          npm run prepare:pins
+      - name: harness self-tests
+        run: npm test
+      - name: T14 version mismatch
+        run: |
+          node suites/T14-version-mismatch/run.mjs --out t14-result.json
+          cat t14-result.json
