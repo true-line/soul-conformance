@@ -1,0 +1,425 @@
+{
+  "report": "soul-conformance/t14",
+  "report_version": 1,
+  "test": "T14",
+  "title": "Version mismatch",
+  "stage": "0",
+  "verifies": [
+    "R7"
+  ],
+  "outcome": "pass",
+  "generated_at": "2026-11-15T22:42:29.897Z",
+  "suite_revision": {
+    "commit": "c8fb5f94e20a70eaa94ffeda1a0c324a061869cf",
+    "clean": true
+  },
+  "platform_main": "c8fcd6c39ae78d45af70ce36ae93a62bf4b4e992",
+  "definition_revision": {
+    "soul_id": "agent_0b3f1e2a-7c4d-4e8f-9a1b-2c3d4e5f6a7b",
+    "definition_digest": "sha256:a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+    "source": "soul-contracts fixtures/positive/hello.first-start.json"
+  },
+  "policy_digest": {
+    "value": null,
+    "reason": "T14 checks contract codecs and admission negotiation; no owner policy is in scope"
+  },
+  "dependency_versions": {
+    "soul-contracts": {
+      "tag": "v0.4.1",
+      "commit": "d9ca0731fbe7bbf7a29d066c8a23cd92717ee9bd",
+      "digest": "sha256:2db6f0a3eda54855111f52dedd20394f30cf65aab12c9a550aaa101cdc74811a",
+      "files": 113
+    },
+    "runtime": {
+      "repository": "https://github.com/true-line/agent-bot-souls.git",
+      "commit": "c5a858db699f873283bb2fc0d196f47663747444"
+    },
+    "broker": {
+      "repository": "https://github.com/true-line/agent-bot-comms.git",
+      "commit": "972fcbed06c8ff79bf60bd9129f5da54e22f5772"
+    },
+    "hq": {
+      "repository": "https://github.com/true-line/agent-bot-hq.git",
+      "commit": "f3c39d2a703085c14bc09f8f0042d048f30525dc"
+    }
+  },
+  "enforcement_profile": {
+    "in_force": "managed-cooperative",
+    "note": "Contract-level check: refusals come from the codecs and the admission socket, which behave the same under both profiles. No protected-only claim is made."
+  },
+  "host": {
+    "os": "linux",
+    "release": "6.18.44-fc-v470",
+    "arch": "x64",
+    "node": "v22.23.4",
+    "ci": "local"
+  },
+  "adapter_versions": {
+    "fake-adapter": "0.1.0"
+  },
+  "totals": {
+    "checks": 17,
+    "checks_failed": 0,
+    "fixture_verdicts": 119,
+    "fixture_verdicts_failed": 0,
+    "informational": 4
+  },
+  "checks": [
+    {
+      "id": "pins.runtime",
+      "description": "runtime pins the same soul-contracts release (tag, commit, manifest digest)",
+      "gating": true,
+      "result": "pass",
+      "observed": {
+        "tag": "v0.4.1",
+        "commit": "d9ca0731fbe7bbf7a29d066c8a23cd92717ee9bd",
+        "digest": "sha256:2db6f0a3eda54855111f52dedd20394f30cf65aab12c9a550aaa101cdc74811a"
+      }
+    },
+    {
+      "id": "pins.hq",
+      "description": "HQ pins the same soul-contracts release (tag, commit, manifest digest)",
+      "gating": true,
+      "result": "pass",
+      "observed": {
+        "tag": "v0.4.1",
+        "commit": "d9ca0731fbe7bbf7a29d066c8a23cd92717ee9bd",
+        "digest": "sha256:2db6f0a3eda54855111f52dedd20394f30cf65aab12c9a550aaa101cdc74811a"
+      }
+    },
+    {
+      "id": "pins.broker",
+      "description": "broker vendors the wire/v1 and task/v1 schemas byte-identical to the pinned release",
+      "gating": true,
+      "result": "pass",
+      "observed": {
+        "commit": "d9ca0731fbe7bbf7a29d066c8a23cd92717ee9bd",
+        "mismatched": []
+      }
+    },
+    {
+      "id": "coverage.fixtures",
+      "description": "every schema in the release has a positive and a negative fixture",
+      "gating": true,
+      "result": "pass",
+      "observed": {
+        "schemas": 19,
+        "missing": []
+      }
+    },
+    {
+      "id": "coverage.broker",
+      "description": "the broker implements every wire/v1 and task/v1 schema in the release",
+      "gating": true,
+      "result": "pass",
+      "observed": {
+        "missing": []
+      }
+    },
+    {
+      "id": "fixtures.runtime",
+      "description": "every shared fixture gets the verdict it pins",
+      "gating": true,
+      "result": "pass",
+      "observed": {
+        "verdicts": 88,
+        "failed": [],
+        "informational": 0
+      }
+    },
+    {
+      "id": "fixtures.broker",
+      "description": "every shared wire/v1 and task/v1 fixture gets the verdict it pins",
+      "gating": true,
+      "result": "pass",
+      "observed": {
+        "verdicts": 19,
+        "failed": [],
+        "informational": 1
+      }
+    },
+    {
+      "id": "fixtures.hq",
+      "description": "every shared hq/v1 Hello fixture gets the verdict it pins",
+      "gating": true,
+      "result": "pass",
+      "observed": {
+        "verdicts": 12,
+        "failed": [],
+        "informational": 3
+      }
+    },
+    {
+      "id": "version.current",
+      "description": "HQ admits a Hello offering N (hq 1, wire 1) and the runtime accepts the admission",
+      "gating": true,
+      "result": "pass",
+      "observed": {
+        "negotiated": {
+          "hq": 1,
+          "wire": 1
+        },
+        "runtime": "accepted"
+      }
+    },
+    {
+      "id": "version.newer-peer",
+      "description": "a peer offering N+1 and N negotiates N on HQ and on the runtime",
+      "gating": true,
+      "result": "pass",
+      "observed": {
+        "hq": {
+          "hq": 1,
+          "wire": 1
+        },
+        "runtime": {
+          "hq": 1,
+          "wire": 1
+        }
+      }
+    },
+    {
+      "id": "version.n-minus-1",
+      "description": "N-1 is negotiated where N > 1",
+      "gating": true,
+      "result": "pass",
+      "observed": {
+        "applicable": false,
+        "reason": "current major is 1 for every contract; there is no N-1 yet",
+        "majors": {
+          "hq": {
+            "hq": 1,
+            "wire": 1,
+            "task": 1
+          },
+          "runtime": {
+            "hq": [
+              1
+            ],
+            "wire": [
+              1
+            ],
+            "task": [
+              1
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "version.unsupported-hq",
+      "description": "HQ refuses a Hello with no common hq version: unsupported_version, a schema-valid refusal, and no decision recorded",
+      "gating": true,
+      "result": "pass",
+      "observed": {
+        "offer": {
+          "hq": [
+            2
+          ],
+          "wire": [
+            1
+          ]
+        },
+        "verdict": "refused unsupported_version",
+        "refusal_schema": "accepted",
+        "admit_after": "no decision"
+      }
+    },
+    {
+      "id": "version.unsupported-wire",
+      "description": "HQ refuses a Hello with no common wire version: unsupported_version, a schema-valid refusal, and no decision recorded",
+      "gating": true,
+      "result": "pass",
+      "observed": {
+        "offer": {
+          "hq": [
+            1
+          ],
+          "wire": [
+            3,
+            2
+          ]
+        },
+        "verdict": "refused unsupported_version",
+        "refusal_schema": "accepted",
+        "admit_after": "no decision"
+      }
+    },
+    {
+      "id": "version.unsupported-runtime",
+      "description": "the runtime refuses an offer it cannot speak and an admission that selects an unsupported version",
+      "gating": true,
+      "result": "pass",
+      "observed": {
+        "offer": "refused unsupported_version",
+        "admission": "refused unsupported_version"
+      }
+    },
+    {
+      "id": "version.frame",
+      "description": "a wire/v1 frame claiming wire_version 2 is refused by the runtime and the broker",
+      "gating": true,
+      "result": "pass",
+      "observed": {
+        "runtime": "refused souls.invalid_contract",
+        "broker": "refused bad-request"
+      }
+    },
+    {
+      "id": "capability.unknown",
+      "description": "a frame requiring time-travel-v9 (not negotiated) is refused with required_capability_missing by the runtime and the broker",
+      "gating": true,
+      "result": "pass",
+      "observed": {
+        "runtime": "refused required_capability_missing",
+        "broker": "refused required_capability_missing",
+        "negotiated": [
+          "sealed-inner-v1"
+        ]
+      }
+    },
+    {
+      "id": "capability.control",
+      "description": "the same frame is accepted once its capability is negotiated, so the refusal is semantic, not a schema failure",
+      "gating": true,
+      "result": "pass",
+      "observed": {
+        "runtime": "accepted",
+        "broker": "accepted",
+        "negotiated": [
+          "sealed-inner-v1",
+          "time-travel-v9"
+        ]
+      }
+    }
+  ],
+  "evidence_references": [
+    "https://github.com/true-line/agent-bot-platform/blob/main/registry/tests.yaml",
+    "https://github.com/true-line/agent-bot-platform/blob/main/docs/07-verification/conformance-catalog.md"
+  ],
+  "fixtures": [
+    {"subject":"runtime","fixture":"positive/action-record.prepared-before-send.json","expectation":"accept","expected":"accepted unchanged","observed":"accepted","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"positive/action-record.unknown-awaiting-reconciliation.json","expectation":"accept","expected":"accepted unchanged","observed":"accepted","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"positive/admission-result.client-identified.json","expectation":"accept","expected":"accepted unchanged","observed":"accepted","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"positive/admission-result.cooperative.json","expectation":"accept","expected":"accepted unchanged","observed":"accepted","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"positive/admission-result.ok.json","expectation":"accept","expected":"accepted unchanged","observed":"accepted","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"positive/approval-record.bounded-class.json","expectation":"accept","expected":"accepted unchanged","observed":"accepted","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"positive/approval-record.single-action.json","expectation":"accept","expected":"accepted unchanged","observed":"accepted","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"positive/candidate-revision-record.evaluated-awaiting-owner.json","expectation":"accept","expected":"accepted unchanged","observed":"accepted","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"positive/credential-issuance-record.dpop-bound.json","expectation":"accept","expected":"accepted unchanged","observed":"accepted","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"positive/directive-or-query.from-owner.json","expectation":"accept","expected":"accepted unchanged","observed":"accepted","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"positive/directive-or-query.which-binding-applies.json","expectation":"accept","expected":"accepted unchanged","observed":"accepted","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"positive/dream-grant-record.standard.json","expectation":"accept","expected":"accepted unchanged","observed":"accepted","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"positive/equip.lead.json","expectation":"accept","expected":"accepted unchanged","observed":"accepted","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"positive/error-response.credential-unavailable.json","expectation":"accept","expected":"accepted unchanged","observed":"accepted","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"positive/error-response.stale-epoch.json","expectation":"accept","expected":"accepted unchanged","observed":"accepted","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"positive/eval-plan-record.two-cells.json","expectation":"accept","expected":"accepted unchanged","observed":"accepted","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"positive/grant-record.edit-scratch.json","expectation":"accept","expected":"accepted unchanged","observed":"accepted","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"positive/grant-record.scoped-to-member.json","expectation":"accept","expected":"accepted unchanged","observed":"accepted","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"positive/hello.client-reported.json","expectation":"accept","expected":"accepted unchanged","observed":"accepted","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"positive/hello.first-start.json","expectation":"accept","expected":"accepted unchanged","observed":"accepted","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"positive/hello.move.json","expectation":"accept","expected":"accepted unchanged","observed":"accepted","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"positive/lifecycle-request.accept-revision-with-deadline.json","expectation":"accept","expected":"accepted unchanged","observed":"accepted","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"positive/lifecycle-request.pause.json","expectation":"accept","expected":"accepted unchanged","observed":"accepted","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"positive/ready-and-lease-renewal.renewal-cold.json","expectation":"accept","expected":"accepted unchanged","observed":"accepted","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"positive/ready-and-lease-renewal.warm.json","expectation":"accept","expected":"accepted unchanged","observed":"accepted","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"positive/task-commitment.complete.json","expectation":"accept","expected":"accepted unchanged","observed":"accepted","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"positive/task-record.offered.json","expectation":"accept","expected":"accepted unchanged","observed":"accepted","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"positive/task-record.waiting-credential-unavailable.json","expectation":"accept","expected":"accepted unchanged","observed":"accepted","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"positive/transfer-record.coordinated-move.json","expectation":"accept","expected":"accepted unchanged","observed":"accepted","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"positive/typed-note.finding-external-derived.json","expectation":"accept","expected":"accepted unchanged","observed":"accepted","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"positive/typed-note.handoff-before-lead-yields.json","expectation":"accept","expected":"accepted unchanged","observed":"accepted","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"positive/wire-frame.notify-unsealed.json","expectation":"accept","expected":"accepted unchanged","observed":"accepted","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"positive/wire-frame.sealed-task-wake.json","expectation":"accept","expected":"accepted unchanged","observed":"accepted","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"negative/action-record.missing-idempotency-key.json","expectation":"schema","expected":"refused","observed":"refused souls.invalid_contract","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"negative/action-record.unknown-state.json","expectation":"schema","expected":"refused","observed":"refused souls.invalid_contract","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"negative/admission-result.client-no-source.json","expectation":"schema","expected":"refused","observed":"refused souls.invalid_contract","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"negative/admission-result.client-unknown-source.json","expectation":"schema","expected":"refused","observed":"refused souls.invalid_contract","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"negative/admission-result.epoch-zero.json","expectation":"schema","expected":"refused","observed":"refused souls.invalid_contract","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"negative/admission-result.no-lease-generation.json","expectation":"schema","expected":"refused","observed":"refused souls.invalid_contract","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"negative/admission-result.short-binding.json","expectation":"schema","expected":"refused","observed":"refused souls.invalid_contract","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"negative/admission-result.unknown-profile.json","expectation":"schema","expected":"refused","observed":"refused souls.invalid_contract","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"negative/approval-record.expired.json","expectation":"semantic","expected":"shape accepted; effect not claimed","observed":"accepted","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"negative/approval-record.malformed-digest.json","expectation":"schema","expected":"refused","observed":"refused souls.invalid_contract","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"negative/candidate-revision-record.change-without-provenance.json","expectation":"schema","expected":"refused","observed":"refused souls.invalid_contract","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"negative/candidate-revision-record.partial-accept-status.json","expectation":"schema","expected":"refused","observed":"refused souls.invalid_contract","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"negative/credential-issuance-record.embeds-token.json","expectation":"schema","expected":"refused","observed":"refused souls.invalid_contract","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"negative/credential-issuance-record.short-thumbprint.json","expectation":"schema","expected":"refused","observed":"refused souls.invalid_contract","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"negative/directive-or-query.from-peer-text.json","expectation":"schema","expected":"refused","observed":"refused souls.invalid_contract","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"negative/dream-grant-record.traversal-into-primitives.json","expectation":"schema","expected":"refused","observed":"refused souls.invalid_contract","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"negative/dream-grant-record.writes-primitives.json","expectation":"schema","expected":"refused","observed":"refused souls.invalid_contract","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"negative/dream-grant-record.zero-wall-clock.json","expectation":"schema","expected":"refused","observed":"refused souls.invalid_contract","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"negative/equip.embeds-secret.json","expectation":"schema","expected":"refused","observed":"refused souls.invalid_contract","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"negative/equip.user-chosen-short-handle.json","expectation":"schema","expected":"refused","observed":"refused souls.invalid_contract","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"negative/error-response.carries-token.json","expectation":"schema","expected":"refused","observed":"refused souls.invalid_contract","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"negative/error-response.empty-explanation.json","expectation":"schema","expected":"refused","observed":"refused souls.invalid_contract","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"negative/error-response.no-correlation-id.json","expectation":"schema","expected":"refused","observed":"refused souls.invalid_contract","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"negative/error-response.unregistered-code.json","expectation":"schema","expected":"refused","observed":"refused souls.invalid_contract","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"negative/eval-plan-record.no-cells.json","expectation":"schema","expected":"refused","observed":"refused souls.invalid_contract","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"negative/grant-record.negative-budget.json","expectation":"schema","expected":"refused","observed":"refused souls.invalid_contract","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"negative/grant-record.unscoped.json","expectation":"schema","expected":"refused","observed":"refused souls.invalid_contract","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"negative/hello.bad-digest.json","expectation":"schema","expected":"refused","observed":"refused souls.invalid_contract","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"negative/hello.client-bad-app-id.json","expectation":"schema","expected":"refused","observed":"refused souls.invalid_contract","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"negative/hello.client-source-claimed.json","expectation":"schema","expected":"refused","observed":"refused souls.invalid_contract","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"negative/hello.missing-lead.json","expectation":"schema","expected":"refused","observed":"refused souls.invalid_contract","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"negative/hello.stale-epoch.json","expectation":"semantic","expected":"shape accepted; effect not claimed","observed":"accepted","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"negative/hello.two-leads.json","expectation":"schema","expected":"refused","observed":"refused souls.invalid_contract","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"negative/hello.unaccepted-definition.json","expectation":"semantic","expected":"shape accepted; effect not claimed","observed":"accepted","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"negative/hello.unknown-field.json","expectation":"schema","expected":"refused","observed":"refused souls.invalid_contract","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"negative/hello.unpinned-version.json","expectation":"schema","expected":"refused","observed":"refused souls.invalid_contract","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"negative/hello.unsupported-profile.json","expectation":"semantic","expected":"shape accepted; effect not claimed","observed":"accepted","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"negative/hello.unsupported-version.json","expectation":"semantic","expected":"refused unsupported_version","observed":"refused unsupported_version","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"negative/hello.version-zero.json","expectation":"schema","expected":"refused","observed":"refused souls.invalid_contract","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"negative/lifecycle-request.missing-owner-session.json","expectation":"schema","expected":"refused","observed":"refused souls.invalid_contract","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"negative/lifecycle-request.recovery-operation.json","expectation":"schema","expected":"refused","observed":"refused souls.invalid_contract","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"negative/ready-and-lease-renewal.renewal-zero-sequence.json","expectation":"schema","expected":"refused","observed":"refused souls.invalid_contract","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"negative/ready-and-lease-renewal.unknown-auth-state.json","expectation":"schema","expected":"refused","observed":"refused souls.invalid_contract","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"negative/ready-and-lease-renewal.unknown-health.json","expectation":"schema","expected":"refused","observed":"refused souls.invalid_contract","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"negative/task-commitment.illustrative-verb.json","expectation":"schema","expected":"refused","observed":"refused souls.invalid_contract","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"negative/task-commitment.missing-operation-id.json","expectation":"schema","expected":"refused","observed":"refused souls.invalid_contract","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"negative/task-record.unknown-status.json","expectation":"schema","expected":"refused","observed":"refused souls.invalid_contract","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"negative/task-record.waiting-without-reason.json","expectation":"schema","expected":"refused","observed":"refused souls.invalid_contract","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"negative/transfer-record.carries-grant.json","expectation":"schema","expected":"refused","observed":"refused souls.invalid_contract","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"negative/transfer-record.no-epoch-evidence.json","expectation":"schema","expected":"refused","observed":"refused souls.invalid_contract","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"negative/typed-note.empty-body.json","expectation":"schema","expected":"refused","observed":"refused souls.invalid_contract","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"negative/wire-frame.duplicate-key.json","expectation":"parse","expected":"refused (strict parse)","observed":"refused host.invalid_json","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"negative/wire-frame.oversized.json","expectation":"schema","expected":"refused","observed":"refused souls.invalid_contract","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"negative/wire-frame.stale-expiry.json","expectation":"semantic","expected":"shape accepted; effect not claimed","observed":"accepted","gating":true,"result":"pass"},
+    {"subject":"runtime","fixture":"negative/wire-frame.unknown-required-capability.json","expectation":"semantic","expected":"refused required_capability_missing","observed":"refused required_capability_missing","gating":true,"result":"pass"},
+    {"subject":"broker","fixture":"positive/action-record.prepared-before-send.json","expectation":"accept","expected":"accepted unchanged","observed":"accepted","gating":true,"result":"pass"},
+    {"subject":"broker","fixture":"positive/action-record.unknown-awaiting-reconciliation.json","expectation":"accept","expected":"accepted unchanged","observed":"accepted","gating":true,"result":"pass"},
+    {"subject":"broker","fixture":"positive/directive-or-query.from-owner.json","expectation":"accept","expected":"accepted unchanged","observed":"accepted","gating":true,"result":"pass"},
+    {"subject":"broker","fixture":"positive/directive-or-query.which-binding-applies.json","expectation":"accept","expected":"accepted unchanged","observed":"accepted","gating":true,"result":"pass"},
+    {"subject":"broker","fixture":"positive/task-commitment.complete.json","expectation":"accept","expected":"accepted unchanged","observed":"accepted","gating":true,"result":"pass"},
+    {"subject":"broker","fixture":"positive/task-record.offered.json","expectation":"accept","expected":"accepted unchanged","observed":"accepted","gating":true,"result":"pass"},
+    {"subject":"broker","fixture":"positive/task-record.waiting-credential-unavailable.json","expectation":"accept","expected":"accepted unchanged","observed":"accepted","gating":true,"result":"pass"},
+    {"subject":"broker","fixture":"positive/wire-frame.notify-unsealed.json","expectation":"accept","expected":"accepted unchanged","observed":"accepted","gating":true,"result":"pass"},
+    {"subject":"broker","fixture":"positive/wire-frame.sealed-task-wake.json","expectation":"accept","expected":"accepted unchanged","observed":"accepted","gating":true,"result":"pass"},
+    {"subject":"broker","fixture":"negative/action-record.missing-idempotency-key.json","expectation":"schema","expected":"refused bad-request","observed":"refused bad-request","gating":true,"result":"pass"},
+    {"subject":"broker","fixture":"negative/action-record.unknown-state.json","expectation":"schema","expected":"refused bad-request","observed":"refused bad-request","gating":true,"result":"pass"},
+    {"subject":"broker","fixture":"negative/directive-or-query.from-peer-text.json","expectation":"schema","expected":"refused bad-request","observed":"refused bad-request","gating":true,"result":"pass"},
+    {"subject":"broker","fixture":"negative/task-commitment.illustrative-verb.json","expectation":"schema","expected":"refused bad-request","observed":"refused bad-request","gating":true,"result":"pass"},
+    {"subject":"broker","fixture":"negative/task-commitment.missing-operation-id.json","expectation":"schema","expected":"refused bad-request","observed":"refused bad-request","gating":true,"result":"pass"},
+    {"subject":"broker","fixture":"negative/task-record.unknown-status.json","expectation":"schema","expected":"refused bad-request","observed":"refused bad-request","gating":true,"result":"pass"},
+    {"subject":"broker","fixture":"negative/task-record.waiting-without-reason.json","expectation":"schema","expected":"refused bad-request","observed":"refused bad-request","gating":true,"result":"pass"},
+    {"subject":"broker","fixture":"negative/wire-frame.duplicate-key.json","expectation":"parse","expected":"refused (strict parse)","observed":"refused bad-request","gating":true,"result":"pass"},
+    {"subject":"broker","fixture":"negative/wire-frame.oversized.json","expectation":"schema","expected":"refused frame_too_large","observed":"refused frame_too_large","gating":true,"result":"pass"},
+    {"subject":"broker","fixture":"negative/wire-frame.stale-expiry.json","expectation":"semantic","expected":"refused message_expired","observed":"refused message_expired","gating":false,"result":"pass"},
+    {"subject":"broker","fixture":"negative/wire-frame.unknown-required-capability.json","expectation":"semantic","expected":"refused required_capability_missing","observed":"refused required_capability_missing","gating":true,"result":"pass"},
+    {"subject":"hq","fixture":"positive/hello.client-reported.json","expectation":"accept","expected":"admitted; runtime accepts the admission result","observed":"accepted","gating":true,"result":"pass"},
+    {"subject":"hq","fixture":"positive/hello.first-start.json","expectation":"accept","expected":"admitted; runtime accepts the admission result","observed":"accepted","gating":true,"result":"pass"},
+    {"subject":"hq","fixture":"positive/hello.move.json","expectation":"accept","expected":"admitted; runtime accepts the admission result","observed":"accepted","gating":true,"result":"pass"},
+    {"subject":"hq","fixture":"negative/hello.bad-digest.json","expectation":"schema","expected":"refused","observed":"refused host.invalid_request","gating":true,"result":"pass"},
+    {"subject":"hq","fixture":"negative/hello.client-bad-app-id.json","expectation":"schema","expected":"refused","observed":"refused host.invalid_request","gating":true,"result":"pass"},
+    {"subject":"hq","fixture":"negative/hello.client-source-claimed.json","expectation":"schema","expected":"refused","observed":"refused host.invalid_request","gating":true,"result":"pass"},
+    {"subject":"hq","fixture":"negative/hello.missing-lead.json","expectation":"schema","expected":"refused","observed":"refused host.invalid_request","gating":true,"result":"pass"},
+    {"subject":"hq","fixture":"negative/hello.stale-epoch.json","expectation":"semantic","expected":"refused stale_epoch","observed":"not run: needs prior epoch state (T15)","gating":false,"result":"not-run"},
+    {"subject":"hq","fixture":"negative/hello.two-leads.json","expectation":"schema","expected":"refused","observed":"refused host.invalid_request","gating":true,"result":"pass"},
+    {"subject":"hq","fixture":"negative/hello.unaccepted-definition.json","expectation":"semantic","expected":"refused definition_not_accepted","observed":"refused definition_not_accepted","gating":false,"result":"pass"},
+    {"subject":"hq","fixture":"negative/hello.unknown-field.json","expectation":"schema","expected":"refused","observed":"refused host.invalid_request","gating":true,"result":"pass"},
+    {"subject":"hq","fixture":"negative/hello.unpinned-version.json","expectation":"schema","expected":"refused","observed":"refused host.invalid_request","gating":true,"result":"pass"},
+    {"subject":"hq","fixture":"negative/hello.unsupported-profile.json","expectation":"semantic","expected":"refused profile_insufficient or admitted as managed-cooperative","observed":"accepted","gating":false,"result":"pass"},
+    {"subject":"hq","fixture":"negative/hello.unsupported-version.json","expectation":"semantic","expected":"refused unsupported_version","observed":"refused unsupported_version","gating":true,"result":"pass"},
+    {"subject":"hq","fixture":"negative/hello.version-zero.json","expectation":"schema","expected":"refused","observed":"refused host.invalid_request","gating":true,"result":"pass"}
+  ]
+}
