@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Run T14 against the pinned soul-contracts release and the pinned runtime,
-// broker and HQ. Exit status 0 only when every gating check passes.
+// broker and HQ. Evidence mode exits 0 when implemented checks pass; --gate also requires accepted compatibility policy.
 //
 //   node suites/T14-version-mismatch/run.mjs [--out <file.json>]
 import { appendFileSync, mkdirSync, writeFileSync } from 'node:fs';
@@ -9,12 +9,14 @@ import { loadFixtures, readJson } from '../../lib/fixtures.mjs';
 import { CONTRACTS_PIN, prepareAll } from '../../lib/pins.mjs';
 import { buildReport, markdown } from '../../lib/report.mjs';
 import { openBroker, openHQ, openRuntime } from '../../lib/subjects.mjs';
+import { platformContext } from '../../lib/platform.mjs';
 import { runT14 } from '../../lib/t14.mjs';
 
 const args = process.argv.slice(2);
 const out = args.includes('--out') ? args[args.indexOf('--out') + 1] : null;
 
 try {
+  const platform = await platformContext();
   const { contracts, subjects } = prepareAll();
   const fixtures = loadFixtures(contracts);
   const hello = readJson(contracts, 'fixtures/positive/hello.first-start.json').input;
@@ -31,14 +33,14 @@ try {
     broker: await openBroker(subjects.broker),
     hq: await openHQ(subjects.hq, contracts, { accepted }),
   });
-  const report = buildReport(result, { hello });
+  const report = buildReport(result, { hello, platformContext: platform });
   const json = `${JSON.stringify(report, null, 2)}\n`;
   if (out) { mkdirSync(dirname(out), { recursive: true }); writeFileSync(out, json); }
   const md = markdown(report);
   if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, md);
   process.stdout.write(md);
   if (!out) process.stdout.write(`\n${json}`);
-  process.exitCode = report.outcome === 'pass' ? 0 : 1;
+  process.exitCode = report.implemented_checks !== 'pass' ? 1 : args.includes('--gate') && report.outcome !== 'pass' ? 2 : 0;
 } catch (error) {
   console.error(`T14 could not run: ${error.stack ?? error.message}`);
   process.exitCode = 2;

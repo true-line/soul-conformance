@@ -18,7 +18,7 @@ Source of record: Soul Agent Platform draft 0.3, Section 14 and Appendix D (`sou
 npm run prepare:pins && npm test && npm run t14
 ```
 
-Node 20 or later, git, and network access to the public true-line repositories; nothing else is installed. Suites that run today: T14 ([suites/T14-version-mismatch](suites/T14-version-mismatch/README.md)). Results land in `reports/<test>/`.
+Node 20 or later, Python 3, git, and network access to the public true-line repositories; nothing else is installed. Suites that run today: T14 current-major evidence ([suites/T14-version-mismatch](suites/T14-version-mismatch/README.md)). Use `--out reports/T14/<name>.json` to save a report. `npm run t14` verifies implemented checks; `npm run t14:gate` additionally requires the accepted compatibility inventory at freshly fetched platform main. A green evidence job can still report the policy gate blocked.
 
 ## Depends on
 

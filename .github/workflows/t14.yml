@@ -1,4 +1,4 @@
-name: t14
+name: T14 current-major evidence
 on:
   push:
     branches: [main]
@@ -8,27 +8,39 @@ permissions:
   contents: read
 jobs:
   t14:
-    # Public repository: hosted minutes are free here.
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
     steps:
-      # No external actions: checkout is plain git, and the runner's preinstalled Node runs the suite.
-      - name: checkout
-        env:
-          TOKEN: ${{ github.token }}
-          REPO: ${{ github.repository }}
-          REF: ${{ github.ref }}
-        run: |
-          git init -q .
-          git remote add origin "https://x-access-token:${TOKEN}@github.com/${REPO}.git"
-          git fetch -q --no-tags --depth 1 origin "+${REF}:refs/ci/head"
-          git checkout -q --detach refs/ci/head
-      - name: prepare pinned inputs
-        run: |
-          node --version
-          npm run prepare:pins
-      - name: harness self-tests
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '22'
+      - name: Fetch and verify pinned anonymous inputs
+        run: npm run prepare:pins
+      - name: Harness mutation and integrity controls
         run: npm test
-      - name: T14 version mismatch
+      - name: T14 evidence against fresh platform main
+        run: node suites/T14-version-mismatch/run.mjs --out reports/T14-latest.json
+      - name: Verify implemented checks and honest policy outcome
         run: |
-          node suites/T14-version-mismatch/run.mjs --out t14-result.json
-          cat t14-result.json
+          node --input-type=module - <<'JS'
+          import assert from 'node:assert/strict';
+          import { readFileSync } from 'node:fs';
+          import { validateInventory } from './lib/inventory.mjs';
+          import { policyVerdict } from './lib/platform.mjs';
+          const report = JSON.parse(readFileSync('reports/T14-latest.json'));
+          validateInventory({ ...report, outcome: report.implemented_checks });
+          assert.equal(report.implemented_checks, 'pass');
+          const policy = policyVerdict(report.platform_context, report.protocol_current);
+          assert.equal(report.outcome, policy.status === 'satisfied' ? 'pass' : 'blocked');
+          assert.equal(report.compatibility_policy.n_minus_1, policy.n_minus_1);
+          JS
+      - name: Retain the exact-run report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: T14-current-major-evidence
+          path: reports/T14-latest.json
+          if-no-files-found: error

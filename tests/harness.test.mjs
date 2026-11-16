@@ -4,10 +4,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { cpSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { loadFixtures, readJson } from '../lib/fixtures.mjs';
-import { CONTRACTS_PIN, canonicalManifest, prepareAll, verifyContracts } from '../lib/pins.mjs';
+import { CACHE, CONTRACTS_PIN, canonicalManifest, prepareAll, verifyContracts } from '../lib/pins.mjs';
 import { openBroker, openHQ, openRuntime } from '../lib/subjects.mjs';
 import { runT14 } from '../lib/t14.mjs';
 
@@ -30,7 +29,7 @@ test('manifest canonical form sorts keys and refuses non-manifest values', () =>
 });
 
 test('a changed, extra or missing contract file is refused', (t) => {
-  const work = mkdtempSync(join(tmpdir(), 'sc-pin-'));
+  const work = mkdtempSync(join(CACHE, 'sc-pin-'));
   t.after(() => rmSync(work, { recursive: true, force: true }));
   assert.doesNotThrow(() => verifyContracts(contracts));
   const changed = join(work, 'changed');
@@ -44,7 +43,7 @@ test('a changed, extra or missing contract file is refused', (t) => {
 });
 
 test('a negative whose base positive changed is refused by the loader', (t) => {
-  const work = mkdtempSync(join(tmpdir(), 'sc-fx-'));
+  const work = mkdtempSync(join(CACHE, 'sc-fx-'));
   t.after(() => rmSync(work, { recursive: true, force: true }));
   cpSync(contracts, work, { recursive: true });
   const path = join(work, 'fixtures/positive/hello.first-start.json');
@@ -53,7 +52,7 @@ test('a negative whose base positive changed is refused by the loader', (t) => {
   assert.throws(() => loadFixtures(work), /bytes changed/);
 });
 
-test('the real subjects pass T14', async () => {
+test('the real subjects pass the implemented current-major checks', async () => {
   const result = await run(await real());
   assert.deepEqual(failed(result), []);
   assert.equal(result.outcome, 'pass');
@@ -93,4 +92,20 @@ test('a subject pinned to another contracts release fails the pin check', async 
   const parts = await real();
   const result = await run({ ...parts, runtime: { ...parts.runtime, pin: { ...parts.runtime.pin, digest: `sha256:${'0'.repeat(64)}` } } });
   assert.deepEqual(failed(result), ['pins.runtime']);
+});
+
+test('HQ refusal checks reject wrong correlation and unrelated post-refusal errors', async () => {
+  for (const change of ['correlation', 'after']) {
+    const parts = await real();
+    const wrong = { ...parts.hq, exchange: (fn) => parts.hq.exchange((s) => fn({ ...s,
+      hello: async (payload) => {
+        const response = await s.hello(payload);
+        if (change === 'correlation' && response.refusal) return { ...response, refusal: { ...response.refusal, request_id: 'unrelated' } };
+        return response;
+      },
+      admit: async (id) => change === 'after' ? { ok: false, host_refusal: { code: 'host.invalid_request', explanation: 'unrelated validation failure' } } : s.admit(id),
+    })) };
+    const result = await run({ ...parts, hq: wrong });
+    for (const id of ['version.unsupported-hq', 'version.unsupported-wire']) assert.ok(failed(result).includes(id));
+  }
 });

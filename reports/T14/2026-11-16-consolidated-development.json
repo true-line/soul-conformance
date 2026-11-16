@@ -1,0 +1,1460 @@
+{
+  "report": "soul-conformance/t14",
+  "report_version": 2,
+  "test": "T14",
+  "title": "Version mismatch",
+  "stage": "0",
+  "verifies": [
+    "R7"
+  ],
+  "outcome": "blocked",
+  "implemented_checks": "pass",
+  "protocol_current": {
+    "hq": 1,
+    "wire": 1
+  },
+  "compatibility_policy": {
+    "status": "blocked",
+    "n_minus_1": "not-exercised",
+    "reason": "Controlled protocol compatibility inventory is absent at fetched platform main."
+  },
+  "coverage_limitations": [
+    "Original v0.4.1 cohort; not the newer HQ13 live-pilot candidate.",
+    "Broker checks exercise production codecs, not live wire/v1 transport framing.",
+    "HQ runs real admission sockets with fixture enrollment, fixed clock and accepted definitions; no production service or member launch.",
+    "No protected-profile enforcement claim."
+  ],
+  "generated_at": "2026-11-16T20:24:31.682Z",
+  "suite_revision": {
+    "commit": "ee1ed2c709936790dfb2dca65547bd00797bad6b",
+    "clean": false,
+    "source_sha256": "b1b7f6905704f3fa64dd281ff5ad9d748431ddb3f97e367d758fa4dbb432a04e",
+    "source_hash_excludes": [
+      ".git",
+      ".cache",
+      "node_modules",
+      "reports",
+      "__pycache__"
+    ]
+  },
+  "platform_main": "c8fcd6c39ae78d45af70ce36ae93a62bf4b4e992",
+  "platform_context": {
+    "revision": "c8fcd6c39ae78d45af70ce36ae93a62bf4b4e992",
+    "fetched_at": "2026-11-16T20:24:29.957Z",
+    "source": "main (fresh, uncached)",
+    "files": {
+      "AGENTS.md": "1104dafa30058dad63fbe0e053cbb0b7aa2e36936ec44fdc80fc74dc58c23964",
+      "registry/tests.yaml": "fd365d782bd395bb344601392f1ad512c96059ff3df8c78628a59164024db762",
+      "registry/requirements.yaml": "00cd59f21c04484f3c6422954d050f41dd3c99380d0328b7a6fbce56935e7d0d",
+      "docs/04-decisions/PDR-0020-components-read-the-platform-at-main.md": "92c71902c5ad837f5473a4bce47519a4fb25fc552cdc109433d889aeaff4f4be",
+      "docs/00-governance/authority-and-ownership.md": "216ab57e77cc61786ac8c9d2d1fa0cf103c4b5107899fa21606779b01f51f60b",
+      "docs/08-release/release-conformance-report.md": "c88f512a9be6ee8bfea08c6ff1594e7fac48fc2b34643a9a63ecd9db27550f4d"
+    },
+    "compatibility": {
+      "status": "blocked",
+      "reason": "Controlled protocol compatibility inventory is absent at fetched platform main."
+    }
+  },
+  "definition_revision": {
+    "soul_id": "agent_0b3f1e2a-7c4d-4e8f-9a1b-2c3d4e5f6a7b",
+    "definition_digest": "sha256:a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+    "source": "soul-contracts fixtures/positive/hello.first-start.json"
+  },
+  "policy_digest": {
+    "value": null,
+    "source": "fresh platform protocol compatibility inventory; no owner runtime policy is in scope"
+  },
+  "dependency_versions": {
+    "soul-contracts": {
+      "tag": "v0.4.1",
+      "commit": "d9ca0731fbe7bbf7a29d066c8a23cd92717ee9bd",
+      "digest": "sha256:2db6f0a3eda54855111f52dedd20394f30cf65aab12c9a550aaa101cdc74811a",
+      "files": 113
+    },
+    "runtime": {
+      "repository": "https://github.com/true-line/agent-bot-souls.git",
+      "commit": "c5a858db699f873283bb2fc0d196f47663747444",
+      "archive_sha256": "35fff8c21f5f3224c3c1a96e36d4520a6f5bc246cb7894d8ec3f7f5c1dac4223",
+      "archive_bytes": 58404
+    },
+    "broker": {
+      "repository": "https://github.com/true-line/agent-bot-comms.git",
+      "commit": "972fcbed06c8ff79bf60bd9129f5da54e22f5772",
+      "archive_sha256": "6e0b4cb90a39d8731fa8520689ceb9d27521eb347848cc0fb3ab7cc7096474ce",
+      "archive_bytes": 20393969
+    },
+    "hq": {
+      "repository": "https://github.com/true-line/agent-bot-hq.git",
+      "commit": "f3c39d2a703085c14bc09f8f0042d048f30525dc",
+      "archive_sha256": "8f7c6ee4c0de4cd59d3bd935b4ed5f4a430e69bec346c2d5a04e1463ae504b54",
+      "archive_bytes": 276341
+    }
+  },
+  "enforcement_profile": {
+    "in_force": "managed-cooperative",
+    "note": "Observed profile from this fixture HQ admission only. Protected enforcement was not exercised; cooperative scope does not waive semantic refusal requirements."
+  },
+  "host": {
+    "os": "linux",
+    "release": "6.18.57",
+    "arch": "x64",
+    "node": "v24.21.0",
+    "ci": "local"
+  },
+  "adapter_versions": {
+    "fake-adapter": "0.1.0"
+  },
+  "totals": {
+    "checks": 17,
+    "implemented_checks": 16,
+    "policy_rows": 1,
+    "n_minus_1_executions": 0,
+    "checks_failed": 0,
+    "fixture_verdicts": 119,
+    "fixture_verdicts_failed": 0,
+    "informational": 4
+  },
+  "checks": [
+    {
+      "id": "pins.runtime",
+      "description": "runtime pins the same soul-contracts release (tag, commit, manifest digest)",
+      "gating": true,
+      "result": "pass",
+      "observed": {
+        "tag": "v0.4.1",
+        "commit": "d9ca0731fbe7bbf7a29d066c8a23cd92717ee9bd",
+        "digest": "sha256:2db6f0a3eda54855111f52dedd20394f30cf65aab12c9a550aaa101cdc74811a"
+      }
+    },
+    {
+      "id": "pins.hq",
+      "description": "HQ pins the same soul-contracts release (tag, commit, manifest digest)",
+      "gating": true,
+      "result": "pass",
+      "observed": {
+        "tag": "v0.4.1",
+        "commit": "d9ca0731fbe7bbf7a29d066c8a23cd92717ee9bd",
+        "digest": "sha256:2db6f0a3eda54855111f52dedd20394f30cf65aab12c9a550aaa101cdc74811a"
+      }
+    },
+    {
+      "id": "pins.broker",
+      "description": "broker vendors the wire/v1 and task/v1 schemas byte-identical to the pinned release",
+      "gating": true,
+      "result": "pass",
+      "observed": {
+        "commit": "d9ca0731fbe7bbf7a29d066c8a23cd92717ee9bd",
+        "mismatched": []
+      }
+    },
+    {
+      "id": "coverage.fixtures",
+      "description": "every schema in the release has a positive and a negative fixture",
+      "gating": true,
+      "result": "pass",
+      "observed": {
+        "schemas": 19,
+        "missing": []
+      }
+    },
+    {
+      "id": "coverage.broker",
+      "description": "the broker implements every wire/v1 and task/v1 schema in the release",
+      "gating": true,
+      "result": "pass",
+      "observed": {
+        "missing": []
+      }
+    },
+    {
+      "id": "fixtures.runtime",
+      "description": "every shared fixture gets the verdict it pins",
+      "gating": true,
+      "result": "pass",
+      "observed": {
+        "verdicts": 88,
+        "failed": [],
+        "informational": 0
+      }
+    },
+    {
+      "id": "fixtures.broker",
+      "description": "every shared wire/v1 and task/v1 fixture gets the verdict it pins",
+      "gating": true,
+      "result": "pass",
+      "observed": {
+        "verdicts": 19,
+        "failed": [],
+        "informational": 1
+      }
+    },
+    {
+      "id": "fixtures.hq",
+      "description": "every shared hq/v1 Hello fixture gets the verdict it pins",
+      "gating": true,
+      "result": "pass",
+      "observed": {
+        "verdicts": 12,
+        "failed": [],
+        "informational": 3
+      }
+    },
+    {
+      "id": "version.current",
+      "description": "HQ admits a Hello offering N (hq 1, wire 1) and the runtime accepts the admission",
+      "gating": true,
+      "result": "pass",
+      "observed": {
+        "negotiated": {
+          "hq": 1,
+          "wire": 1
+        },
+        "runtime": "accepted"
+      }
+    },
+    {
+      "id": "version.newer-peer",
+      "description": "a peer offering N+1 and N negotiates N on HQ and on the runtime",
+      "gating": true,
+      "result": "pass",
+      "observed": {
+        "hq": {
+          "hq": 1,
+          "wire": 1
+        },
+        "runtime": {
+          "hq": 1,
+          "wire": 1
+        }
+      }
+    },
+    {
+      "id": "version.n-minus-1",
+      "description": "Previous-major interoperability requires the controlled platform inventory",
+      "gating": false,
+      "result": "not-exercised",
+      "observed": {
+        "majors": {
+          "hq": {
+            "hq": 1,
+            "wire": 1,
+            "task": 1
+          },
+          "runtime": {
+            "hq": [
+              1
+            ],
+            "wire": [
+              1
+            ],
+            "task": [
+              1
+            ]
+          }
+        },
+        "reason": "No previous-major cohort was executed; consult compatibility_policy in the report."
+      }
+    },
+    {
+      "id": "version.unsupported-hq",
+      "description": "HQ refuses a Hello with no common hq version: unsupported_version, a schema-valid refusal, and no decision recorded",
+      "gating": true,
+      "result": "pass",
+      "observed": {
+        "offer": {
+          "hq": [
+            2
+          ],
+          "wire": [
+            1
+          ]
+        },
+        "verdict": "refused unsupported_version",
+        "refusal_schema": "accepted",
+        "admit_after": "host.invalid_request",
+        "state_unchanged": true
+      }
+    },
+    {
+      "id": "version.unsupported-wire",
+      "description": "HQ refuses a Hello with no common wire version: unsupported_version, a schema-valid refusal, and no decision recorded",
+      "gating": true,
+      "result": "pass",
+      "observed": {
+        "offer": {
+          "hq": [
+            1
+          ],
+          "wire": [
+            3,
+            2
+          ]
+        },
+        "verdict": "refused unsupported_version",
+        "refusal_schema": "accepted",
+        "admit_after": "host.invalid_request",
+        "state_unchanged": true
+      }
+    },
+    {
+      "id": "version.unsupported-runtime",
+      "description": "the runtime refuses an offer it cannot speak and an admission that selects an unsupported version",
+      "gating": true,
+      "result": "pass",
+      "observed": {
+        "offer": "refused unsupported_version",
+        "admission": "refused unsupported_version"
+      }
+    },
+    {
+      "id": "version.frame",
+      "description": "a wire/v1 frame claiming wire_version 2 is refused by the runtime and the broker",
+      "gating": true,
+      "result": "pass",
+      "observed": {
+        "runtime": "refused souls.invalid_contract",
+        "broker": "refused bad-request"
+      }
+    },
+    {
+      "id": "capability.unknown",
+      "description": "a frame requiring time-travel-v9 (not negotiated) is refused with required_capability_missing by the runtime and the broker",
+      "gating": true,
+      "result": "pass",
+      "observed": {
+        "runtime": "refused required_capability_missing",
+        "broker": "refused required_capability_missing",
+        "negotiated": [
+          "sealed-inner-v1"
+        ]
+      }
+    },
+    {
+      "id": "capability.control",
+      "description": "the same frame is accepted once its capability is negotiated, so the refusal is semantic, not a schema failure",
+      "gating": true,
+      "result": "pass",
+      "observed": {
+        "runtime": "accepted",
+        "broker": "accepted",
+        "negotiated": [
+          "sealed-inner-v1",
+          "time-travel-v9"
+        ]
+      }
+    }
+  ],
+  "fixtures": [
+    {
+      "subject": "runtime",
+      "fixture": "positive/action-record.prepared-before-send.json",
+      "expectation": "accept",
+      "expected": "accepted unchanged",
+      "observed": "accepted",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "positive/action-record.unknown-awaiting-reconciliation.json",
+      "expectation": "accept",
+      "expected": "accepted unchanged",
+      "observed": "accepted",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "positive/admission-result.client-identified.json",
+      "expectation": "accept",
+      "expected": "accepted unchanged",
+      "observed": "accepted",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "positive/admission-result.cooperative.json",
+      "expectation": "accept",
+      "expected": "accepted unchanged",
+      "observed": "accepted",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "positive/admission-result.ok.json",
+      "expectation": "accept",
+      "expected": "accepted unchanged",
+      "observed": "accepted",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "positive/approval-record.bounded-class.json",
+      "expectation": "accept",
+      "expected": "accepted unchanged",
+      "observed": "accepted",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "positive/approval-record.single-action.json",
+      "expectation": "accept",
+      "expected": "accepted unchanged",
+      "observed": "accepted",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "positive/candidate-revision-record.evaluated-awaiting-owner.json",
+      "expectation": "accept",
+      "expected": "accepted unchanged",
+      "observed": "accepted",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "positive/credential-issuance-record.dpop-bound.json",
+      "expectation": "accept",
+      "expected": "accepted unchanged",
+      "observed": "accepted",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "positive/directive-or-query.from-owner.json",
+      "expectation": "accept",
+      "expected": "accepted unchanged",
+      "observed": "accepted",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "positive/directive-or-query.which-binding-applies.json",
+      "expectation": "accept",
+      "expected": "accepted unchanged",
+      "observed": "accepted",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "positive/dream-grant-record.standard.json",
+      "expectation": "accept",
+      "expected": "accepted unchanged",
+      "observed": "accepted",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "positive/equip.lead.json",
+      "expectation": "accept",
+      "expected": "accepted unchanged",
+      "observed": "accepted",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "positive/error-response.credential-unavailable.json",
+      "expectation": "accept",
+      "expected": "accepted unchanged",
+      "observed": "accepted",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "positive/error-response.stale-epoch.json",
+      "expectation": "accept",
+      "expected": "accepted unchanged",
+      "observed": "accepted",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "positive/eval-plan-record.two-cells.json",
+      "expectation": "accept",
+      "expected": "accepted unchanged",
+      "observed": "accepted",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "positive/grant-record.edit-scratch.json",
+      "expectation": "accept",
+      "expected": "accepted unchanged",
+      "observed": "accepted",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "positive/grant-record.scoped-to-member.json",
+      "expectation": "accept",
+      "expected": "accepted unchanged",
+      "observed": "accepted",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "positive/hello.client-reported.json",
+      "expectation": "accept",
+      "expected": "accepted unchanged",
+      "observed": "accepted",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "positive/hello.first-start.json",
+      "expectation": "accept",
+      "expected": "accepted unchanged",
+      "observed": "accepted",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "positive/hello.move.json",
+      "expectation": "accept",
+      "expected": "accepted unchanged",
+      "observed": "accepted",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "positive/lifecycle-request.accept-revision-with-deadline.json",
+      "expectation": "accept",
+      "expected": "accepted unchanged",
+      "observed": "accepted",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "positive/lifecycle-request.pause.json",
+      "expectation": "accept",
+      "expected": "accepted unchanged",
+      "observed": "accepted",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "positive/ready-and-lease-renewal.renewal-cold.json",
+      "expectation": "accept",
+      "expected": "accepted unchanged",
+      "observed": "accepted",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "positive/ready-and-lease-renewal.warm.json",
+      "expectation": "accept",
+      "expected": "accepted unchanged",
+      "observed": "accepted",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "positive/task-commitment.complete.json",
+      "expectation": "accept",
+      "expected": "accepted unchanged",
+      "observed": "accepted",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "positive/task-record.offered.json",
+      "expectation": "accept",
+      "expected": "accepted unchanged",
+      "observed": "accepted",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "positive/task-record.waiting-credential-unavailable.json",
+      "expectation": "accept",
+      "expected": "accepted unchanged",
+      "observed": "accepted",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "positive/transfer-record.coordinated-move.json",
+      "expectation": "accept",
+      "expected": "accepted unchanged",
+      "observed": "accepted",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "positive/typed-note.finding-external-derived.json",
+      "expectation": "accept",
+      "expected": "accepted unchanged",
+      "observed": "accepted",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "positive/typed-note.handoff-before-lead-yields.json",
+      "expectation": "accept",
+      "expected": "accepted unchanged",
+      "observed": "accepted",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "positive/wire-frame.notify-unsealed.json",
+      "expectation": "accept",
+      "expected": "accepted unchanged",
+      "observed": "accepted",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "positive/wire-frame.sealed-task-wake.json",
+      "expectation": "accept",
+      "expected": "accepted unchanged",
+      "observed": "accepted",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "negative/action-record.missing-idempotency-key.json",
+      "expectation": "schema",
+      "expected": "refused",
+      "observed": "refused souls.invalid_contract",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "negative/action-record.unknown-state.json",
+      "expectation": "schema",
+      "expected": "refused",
+      "observed": "refused souls.invalid_contract",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "negative/admission-result.client-no-source.json",
+      "expectation": "schema",
+      "expected": "refused",
+      "observed": "refused souls.invalid_contract",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "negative/admission-result.client-unknown-source.json",
+      "expectation": "schema",
+      "expected": "refused",
+      "observed": "refused souls.invalid_contract",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "negative/admission-result.epoch-zero.json",
+      "expectation": "schema",
+      "expected": "refused",
+      "observed": "refused souls.invalid_contract",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "negative/admission-result.no-lease-generation.json",
+      "expectation": "schema",
+      "expected": "refused",
+      "observed": "refused souls.invalid_contract",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "negative/admission-result.short-binding.json",
+      "expectation": "schema",
+      "expected": "refused",
+      "observed": "refused souls.invalid_contract",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "negative/admission-result.unknown-profile.json",
+      "expectation": "schema",
+      "expected": "refused",
+      "observed": "refused souls.invalid_contract",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "negative/approval-record.expired.json",
+      "expectation": "semantic",
+      "expected": "shape accepted; effect not claimed",
+      "observed": "accepted",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "negative/approval-record.malformed-digest.json",
+      "expectation": "schema",
+      "expected": "refused",
+      "observed": "refused souls.invalid_contract",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "negative/candidate-revision-record.change-without-provenance.json",
+      "expectation": "schema",
+      "expected": "refused",
+      "observed": "refused souls.invalid_contract",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "negative/candidate-revision-record.partial-accept-status.json",
+      "expectation": "schema",
+      "expected": "refused",
+      "observed": "refused souls.invalid_contract",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "negative/credential-issuance-record.embeds-token.json",
+      "expectation": "schema",
+      "expected": "refused",
+      "observed": "refused souls.invalid_contract",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "negative/credential-issuance-record.short-thumbprint.json",
+      "expectation": "schema",
+      "expected": "refused",
+      "observed": "refused souls.invalid_contract",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "negative/directive-or-query.from-peer-text.json",
+      "expectation": "schema",
+      "expected": "refused",
+      "observed": "refused souls.invalid_contract",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "negative/dream-grant-record.traversal-into-primitives.json",
+      "expectation": "schema",
+      "expected": "refused",
+      "observed": "refused souls.invalid_contract",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "negative/dream-grant-record.writes-primitives.json",
+      "expectation": "schema",
+      "expected": "refused",
+      "observed": "refused souls.invalid_contract",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "negative/dream-grant-record.zero-wall-clock.json",
+      "expectation": "schema",
+      "expected": "refused",
+      "observed": "refused souls.invalid_contract",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "negative/equip.embeds-secret.json",
+      "expectation": "schema",
+      "expected": "refused",
+      "observed": "refused souls.invalid_contract",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "negative/equip.user-chosen-short-handle.json",
+      "expectation": "schema",
+      "expected": "refused",
+      "observed": "refused souls.invalid_contract",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "negative/error-response.carries-token.json",
+      "expectation": "schema",
+      "expected": "refused",
+      "observed": "refused souls.invalid_contract",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "negative/error-response.empty-explanation.json",
+      "expectation": "schema",
+      "expected": "refused",
+      "observed": "refused souls.invalid_contract",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "negative/error-response.no-correlation-id.json",
+      "expectation": "schema",
+      "expected": "refused",
+      "observed": "refused souls.invalid_contract",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "negative/error-response.unregistered-code.json",
+      "expectation": "schema",
+      "expected": "refused",
+      "observed": "refused souls.invalid_contract",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "negative/eval-plan-record.no-cells.json",
+      "expectation": "schema",
+      "expected": "refused",
+      "observed": "refused souls.invalid_contract",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "negative/grant-record.negative-budget.json",
+      "expectation": "schema",
+      "expected": "refused",
+      "observed": "refused souls.invalid_contract",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "negative/grant-record.unscoped.json",
+      "expectation": "schema",
+      "expected": "refused",
+      "observed": "refused souls.invalid_contract",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "negative/hello.bad-digest.json",
+      "expectation": "schema",
+      "expected": "refused",
+      "observed": "refused souls.invalid_contract",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "negative/hello.client-bad-app-id.json",
+      "expectation": "schema",
+      "expected": "refused",
+      "observed": "refused souls.invalid_contract",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "negative/hello.client-source-claimed.json",
+      "expectation": "schema",
+      "expected": "refused",
+      "observed": "refused souls.invalid_contract",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "negative/hello.missing-lead.json",
+      "expectation": "schema",
+      "expected": "refused",
+      "observed": "refused souls.invalid_contract",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "negative/hello.stale-epoch.json",
+      "expectation": "semantic",
+      "expected": "shape accepted; effect not claimed",
+      "observed": "accepted",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "negative/hello.two-leads.json",
+      "expectation": "schema",
+      "expected": "refused",
+      "observed": "refused souls.invalid_contract",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "negative/hello.unaccepted-definition.json",
+      "expectation": "semantic",
+      "expected": "shape accepted; effect not claimed",
+      "observed": "accepted",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "negative/hello.unknown-field.json",
+      "expectation": "schema",
+      "expected": "refused",
+      "observed": "refused souls.invalid_contract",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "negative/hello.unpinned-version.json",
+      "expectation": "schema",
+      "expected": "refused",
+      "observed": "refused souls.invalid_contract",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "negative/hello.unsupported-profile.json",
+      "expectation": "semantic",
+      "expected": "shape accepted; effect not claimed",
+      "observed": "accepted",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "negative/hello.unsupported-version.json",
+      "expectation": "semantic",
+      "expected": "refused unsupported_version",
+      "observed": "refused unsupported_version",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "negative/hello.version-zero.json",
+      "expectation": "schema",
+      "expected": "refused",
+      "observed": "refused souls.invalid_contract",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "negative/lifecycle-request.missing-owner-session.json",
+      "expectation": "schema",
+      "expected": "refused",
+      "observed": "refused souls.invalid_contract",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "negative/lifecycle-request.recovery-operation.json",
+      "expectation": "schema",
+      "expected": "refused",
+      "observed": "refused souls.invalid_contract",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "negative/ready-and-lease-renewal.renewal-zero-sequence.json",
+      "expectation": "schema",
+      "expected": "refused",
+      "observed": "refused souls.invalid_contract",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "negative/ready-and-lease-renewal.unknown-auth-state.json",
+      "expectation": "schema",
+      "expected": "refused",
+      "observed": "refused souls.invalid_contract",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "negative/ready-and-lease-renewal.unknown-health.json",
+      "expectation": "schema",
+      "expected": "refused",
+      "observed": "refused souls.invalid_contract",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "negative/task-commitment.illustrative-verb.json",
+      "expectation": "schema",
+      "expected": "refused",
+      "observed": "refused souls.invalid_contract",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "negative/task-commitment.missing-operation-id.json",
+      "expectation": "schema",
+      "expected": "refused",
+      "observed": "refused souls.invalid_contract",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "negative/task-record.unknown-status.json",
+      "expectation": "schema",
+      "expected": "refused",
+      "observed": "refused souls.invalid_contract",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "negative/task-record.waiting-without-reason.json",
+      "expectation": "schema",
+      "expected": "refused",
+      "observed": "refused souls.invalid_contract",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "negative/transfer-record.carries-grant.json",
+      "expectation": "schema",
+      "expected": "refused",
+      "observed": "refused souls.invalid_contract",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "negative/transfer-record.no-epoch-evidence.json",
+      "expectation": "schema",
+      "expected": "refused",
+      "observed": "refused souls.invalid_contract",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "negative/typed-note.empty-body.json",
+      "expectation": "schema",
+      "expected": "refused",
+      "observed": "refused souls.invalid_contract",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "negative/wire-frame.duplicate-key.json",
+      "expectation": "parse",
+      "expected": "refused (strict parse)",
+      "observed": "refused host.invalid_json",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "negative/wire-frame.oversized.json",
+      "expectation": "schema",
+      "expected": "refused",
+      "observed": "refused souls.invalid_contract",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "negative/wire-frame.stale-expiry.json",
+      "expectation": "semantic",
+      "expected": "shape accepted; effect not claimed",
+      "observed": "accepted",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "runtime",
+      "fixture": "negative/wire-frame.unknown-required-capability.json",
+      "expectation": "semantic",
+      "expected": "refused required_capability_missing",
+      "observed": "refused required_capability_missing",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "broker",
+      "fixture": "positive/action-record.prepared-before-send.json",
+      "expectation": "accept",
+      "expected": "accepted unchanged",
+      "observed": "accepted",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "broker",
+      "fixture": "positive/action-record.unknown-awaiting-reconciliation.json",
+      "expectation": "accept",
+      "expected": "accepted unchanged",
+      "observed": "accepted",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "broker",
+      "fixture": "positive/directive-or-query.from-owner.json",
+      "expectation": "accept",
+      "expected": "accepted unchanged",
+      "observed": "accepted",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "broker",
+      "fixture": "positive/directive-or-query.which-binding-applies.json",
+      "expectation": "accept",
+      "expected": "accepted unchanged",
+      "observed": "accepted",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "broker",
+      "fixture": "positive/task-commitment.complete.json",
+      "expectation": "accept",
+      "expected": "accepted unchanged",
+      "observed": "accepted",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "broker",
+      "fixture": "positive/task-record.offered.json",
+      "expectation": "accept",
+      "expected": "accepted unchanged",
+      "observed": "accepted",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "broker",
+      "fixture": "positive/task-record.waiting-credential-unavailable.json",
+      "expectation": "accept",
+      "expected": "accepted unchanged",
+      "observed": "accepted",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "broker",
+      "fixture": "positive/wire-frame.notify-unsealed.json",
+      "expectation": "accept",
+      "expected": "accepted unchanged",
+      "observed": "accepted",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "broker",
+      "fixture": "positive/wire-frame.sealed-task-wake.json",
+      "expectation": "accept",
+      "expected": "accepted unchanged",
+      "observed": "accepted",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "broker",
+      "fixture": "negative/action-record.missing-idempotency-key.json",
+      "expectation": "schema",
+      "expected": "refused bad-request",
+      "observed": "refused bad-request",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "broker",
+      "fixture": "negative/action-record.unknown-state.json",
+      "expectation": "schema",
+      "expected": "refused bad-request",
+      "observed": "refused bad-request",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "broker",
+      "fixture": "negative/directive-or-query.from-peer-text.json",
+      "expectation": "schema",
+      "expected": "refused bad-request",
+      "observed": "refused bad-request",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "broker",
+      "fixture": "negative/task-commitment.illustrative-verb.json",
+      "expectation": "schema",
+      "expected": "refused bad-request",
+      "observed": "refused bad-request",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "broker",
+      "fixture": "negative/task-commitment.missing-operation-id.json",
+      "expectation": "schema",
+      "expected": "refused bad-request",
+      "observed": "refused bad-request",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "broker",
+      "fixture": "negative/task-record.unknown-status.json",
+      "expectation": "schema",
+      "expected": "refused bad-request",
+      "observed": "refused bad-request",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "broker",
+      "fixture": "negative/task-record.waiting-without-reason.json",
+      "expectation": "schema",
+      "expected": "refused bad-request",
+      "observed": "refused bad-request",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "broker",
+      "fixture": "negative/wire-frame.duplicate-key.json",
+      "expectation": "parse",
+      "expected": "refused (strict parse)",
+      "observed": "refused bad-request",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "broker",
+      "fixture": "negative/wire-frame.oversized.json",
+      "expectation": "schema",
+      "expected": "refused frame_too_large",
+      "observed": "refused frame_too_large",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "broker",
+      "fixture": "negative/wire-frame.stale-expiry.json",
+      "expectation": "semantic",
+      "expected": "refused message_expired",
+      "observed": "refused message_expired",
+      "gating": false,
+      "result": "pass"
+    },
+    {
+      "subject": "broker",
+      "fixture": "negative/wire-frame.unknown-required-capability.json",
+      "expectation": "semantic",
+      "expected": "refused required_capability_missing",
+      "observed": "refused required_capability_missing",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "hq",
+      "fixture": "positive/hello.client-reported.json",
+      "expectation": "accept",
+      "expected": "admitted; runtime accepts the admission result",
+      "observed": "accepted",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "hq",
+      "fixture": "positive/hello.first-start.json",
+      "expectation": "accept",
+      "expected": "admitted; runtime accepts the admission result",
+      "observed": "accepted",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "hq",
+      "fixture": "positive/hello.move.json",
+      "expectation": "accept",
+      "expected": "admitted; runtime accepts the admission result",
+      "observed": "accepted",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "hq",
+      "fixture": "negative/hello.bad-digest.json",
+      "expectation": "schema",
+      "expected": "refused",
+      "observed": "refused host.invalid_request",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "hq",
+      "fixture": "negative/hello.client-bad-app-id.json",
+      "expectation": "schema",
+      "expected": "refused",
+      "observed": "refused host.invalid_request",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "hq",
+      "fixture": "negative/hello.client-source-claimed.json",
+      "expectation": "schema",
+      "expected": "refused",
+      "observed": "refused host.invalid_request",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "hq",
+      "fixture": "negative/hello.missing-lead.json",
+      "expectation": "schema",
+      "expected": "refused",
+      "observed": "refused host.invalid_request",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "hq",
+      "fixture": "negative/hello.stale-epoch.json",
+      "expectation": "semantic",
+      "expected": "refused stale_epoch",
+      "observed": "not run: needs prior epoch state (T15)",
+      "gating": false,
+      "result": "not-run"
+    },
+    {
+      "subject": "hq",
+      "fixture": "negative/hello.two-leads.json",
+      "expectation": "schema",
+      "expected": "refused",
+      "observed": "refused host.invalid_request",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "hq",
+      "fixture": "negative/hello.unaccepted-definition.json",
+      "expectation": "semantic",
+      "expected": "refused definition_not_accepted",
+      "observed": "refused definition_not_accepted",
+      "gating": false,
+      "result": "pass"
+    },
+    {
+      "subject": "hq",
+      "fixture": "negative/hello.unknown-field.json",
+      "expectation": "schema",
+      "expected": "refused",
+      "observed": "refused host.invalid_request",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "hq",
+      "fixture": "negative/hello.unpinned-version.json",
+      "expectation": "schema",
+      "expected": "refused",
+      "observed": "refused host.invalid_request",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "hq",
+      "fixture": "negative/hello.unsupported-profile.json",
+      "expectation": "semantic",
+      "expected": "refused profile_insufficient or admitted as managed-cooperative",
+      "observed": "accepted",
+      "gating": false,
+      "result": "pass"
+    },
+    {
+      "subject": "hq",
+      "fixture": "negative/hello.unsupported-version.json",
+      "expectation": "semantic",
+      "expected": "refused unsupported_version",
+      "observed": "refused unsupported_version",
+      "gating": true,
+      "result": "pass"
+    },
+    {
+      "subject": "hq",
+      "fixture": "negative/hello.version-zero.json",
+      "expectation": "schema",
+      "expected": "refused",
+      "observed": "refused host.invalid_request",
+      "gating": true,
+      "result": "pass"
+    }
+  ],
+  "evidence_references": [
+    "https://github.com/true-line/agent-bot-platform/blob/c8fcd6c39ae78d45af70ce36ae93a62bf4b4e992/registry/tests.yaml",
+    "https://github.com/true-line/agent-bot-platform/blob/c8fcd6c39ae78d45af70ce36ae93a62bf4b4e992/docs/08-release/release-conformance-report.md"
+  ]
+}
