@@ -1,0 +1,13 @@
+{
+  "name": "soul-conformance",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {"node": ">=22"},
+  "scripts": {
+    "prepare:dependencies": "python3 scripts/dependencies.py",
+    "test": "node --test tests/*.test.mjs",
+    "t14": "node suites/T14-version-mismatch/run.mjs",
+    "t14:gate": "node suites/T14-version-mismatch/run.mjs --gate"
+  }
+}

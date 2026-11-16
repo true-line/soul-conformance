@@ -25,3 +25,10 @@ Source of record: Soul Agent Platform draft 0.3, Section 14 and Appendix D (`sou
 ## Work package
 
 WP7 Verification — independent reviewer. Begins at WP1; delivers adversarial tests, recovery evidence, and the release report.
+
+## Executable verification
+
+[T14 current-major verification](suites/T14-version-mismatch/README.md) now
+runs against immutable component source archives and fresh platform `main`.
+It produces independent protocol evidence with an explicit policy-blocked
+whole-T14 outcome. Its CI success does not declare Stage 0 complete.

@@ -1,0 +1,1473 @@
+{
+  "schema": "soul-conformance-T14/1",
+  "startedAt": "2026-11-16T20:09:07.385Z",
+  "suite": "T14",
+  "suiteWorktreeDirty": true,
+  "suiteRevision": "d645818961371dab50c21833c3ca474bed6264d6",
+  "dependencies": {
+    "hq": {
+      "repository": "true-line/agent-bot-hq",
+      "commit": "e8c3da0f6856332c49c26b5f85708d7ade9b222e",
+      "url": "https://codeload.github.com/true-line/agent-bot-hq/tar.gz/e8c3da0f6856332c49c26b5f85708d7ade9b222e",
+      "sha256": "5d93ed03b5d6b738852c06feb9dca8ae972e4ae9a64f85009500577e1554771c",
+      "archiveBytes": 306663
+    },
+    "souls": {
+      "repository": "true-line/agent-bot-souls",
+      "commit": "699ea4a02028a6219695e9a64d4e7cdf3836be01",
+      "url": "https://codeload.github.com/true-line/agent-bot-souls/tar.gz/699ea4a02028a6219695e9a64d4e7cdf3836be01",
+      "sha256": "73e0657e9c715130bfae354dd78e03cc11e8ea26d34a5513b95e5c33d33ec22f",
+      "archiveBytes": 69041
+    },
+    "comms": {
+      "repository": "true-line/agent-bot-comms",
+      "commit": "972fcbed06c8ff79bf60bd9129f5da54e22f5772",
+      "url": "https://codeload.github.com/true-line/agent-bot-comms/tar.gz/972fcbed06c8ff79bf60bd9129f5da54e22f5772",
+      "sha256": "6e0b4cb90a39d8731fa8520689ceb9d27521eb347848cc0fb3ab7cc7096474ce",
+      "archiveBytes": 20393969
+    },
+    "contracts": {
+      "repository": "true-line/soul-contracts",
+      "commit": "b96239cc47571237f7064ddbcbd0edec8e365c6b",
+      "url": "https://codeload.github.com/true-line/soul-contracts/tar.gz/b96239cc47571237f7064ddbcbd0edec8e365c6b",
+      "sha256": "69a92559c0ece22c7d145b91b4a28c4f817cc6e21a06687992228c8f53294e5e",
+      "archiveBytes": 58680
+    },
+    "runtimeContracts": {
+      "repository": "true-line/soul-contracts",
+      "commit": "d9ca0731fbe7bbf7a29d066c8a23cd92717ee9bd",
+      "url": "https://codeload.github.com/true-line/soul-contracts/tar.gz/d9ca0731fbe7bbf7a29d066c8a23cd92717ee9bd",
+      "sha256": "5abf5376ca4c0c31701a2b4010aa8bae4e0735bd279eb8d04f089547afb829b6",
+      "archiveBytes": 44082
+    }
+  },
+  "enforcementProfile": "managed-cooperative",
+  "host": {
+    "platform": "linux",
+    "arch": "x64",
+    "release": "6.18.57",
+    "node": "v24.21.0"
+  },
+  "adapters": [
+    {
+      "name": "independent raw protocol driver",
+      "version": "1",
+      "nativeHarness": false
+    }
+  ],
+  "observedProtocolMajors": {
+    "hq": [
+      1
+    ],
+    "wire": [
+      1
+    ]
+  },
+  "recordSchemaVersions": {
+    "task": 1
+  },
+  "previousSupportedMajor": {
+    "status": "blocked",
+    "value": null,
+    "reason": "Missing accepted compatibility inventory/bootstrap decision; package releases v0.4.1 and v0.5.0 are not protocol majors.",
+    "proposal": "https://github.com/true-line/agent-bot-platform/discussions/75"
+  },
+  "boundaries": [
+    "Local test enrollment fixture; no live device, remote service or production configuration.",
+    "Production HQ, sockets, store, comms broker and default notice consumer are exercised.",
+    "Production Soul runtime decoder/client and comms wire codec are exercised separately; no live wire/v1 framing claim.",
+    "Hello version negotiation does not prove capability intersection negotiation.",
+    "Cooperative does not waive any failed protocol refusal. Protected enforcement is not certified."
+  ],
+  "tests": [
+    {
+      "id": "hq-v0.5.0.positive.action-record.prepared-before-send.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.positive.action-record.unknown-awaiting-reconciliation.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.positive.admission-result.client-identified.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.positive.admission-result.cooperative.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.positive.admission-result.ok.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.positive.approval-record.bounded-class.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.positive.approval-record.single-action.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.positive.candidate-revision-record.evaluated-awaiting-owner.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.positive.credential-issuance-record.dpop-bound.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.positive.directive-or-query.from-owner.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.positive.directive-or-query.which-binding-applies.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.positive.dream-grant-record.standard.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.positive.equip.lead.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.positive.error-response.credential-unavailable.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.positive.error-response.stale-epoch.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.positive.eval-plan-record.two-cells.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.positive.grant-record.edit-scratch.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.positive.grant-record.scoped-to-member.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.positive.hello.client-reported.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.positive.hello.first-start.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.positive.hello.move.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.positive.lifecycle-request.accept-revision-with-deadline.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.positive.lifecycle-request.pause.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.positive.notice-query.consume-one.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.positive.notice-query.peek.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.positive.notice-result.consume-one.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.positive.notice-result.empty.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.positive.notice-result.peek.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.positive.ready-and-lease-renewal.renewal-cold.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.positive.ready-and-lease-renewal.warm.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.positive.task-commitment.complete.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.positive.task-record.offered.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.positive.task-record.waiting-credential-unavailable.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.positive.transfer-record.coordinated-move.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.positive.typed-note.finding-external-derived.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.positive.typed-note.handoff-before-lead-yields.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.positive.wire-frame.notify-unsealed.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.positive.wire-frame.sealed-task-wake.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.action-record.missing-idempotency-key.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.action-record.unknown-state.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.admission-result.client-no-source.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.admission-result.client-unknown-source.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.admission-result.epoch-zero.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.admission-result.no-lease-generation.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.admission-result.short-binding.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.admission-result.unknown-profile.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.approval-record.expired.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.approval-record.malformed-digest.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.candidate-revision-record.change-without-provenance.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.candidate-revision-record.partial-accept-status.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.credential-issuance-record.embeds-token.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.credential-issuance-record.short-thumbprint.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.directive-or-query.from-peer-text.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.dream-grant-record.traversal-into-primitives.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.dream-grant-record.writes-primitives.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.dream-grant-record.zero-wall-clock.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.equip.embeds-secret.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.equip.user-chosen-short-handle.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.error-response.carries-token.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.error-response.empty-explanation.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.error-response.no-correlation-id.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.error-response.unregistered-code.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.eval-plan-record.no-cells.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.grant-record.negative-budget.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.grant-record.unscoped.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.hello.bad-digest.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.hello.client-bad-app-id.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.hello.client-source-claimed.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.hello.missing-lead.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.hello.stale-epoch.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.hello.two-leads.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.hello.unaccepted-definition.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.hello.unknown-field.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.hello.unpinned-version.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.hello.unsupported-profile.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.hello.unsupported-version.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.hello.version-zero.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.lifecycle-request.missing-owner-session.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.lifecycle-request.recovery-operation.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.notice-query.bad-repository.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.notice-query.capability-not-supported.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.notice-query.consume-count.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.notice-query.dot-repository.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.notice-query.excess-count.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.notice-query.newline-expected_repository.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.notice-query.newline-request_id.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.notice-query.operation-mismatch.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.notice-query.scope-mismatch.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.notice-query.selector-app.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.notice-query.selector-harness.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.notice-query.selector-notice_scope.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.notice-query.selector-repo.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.notice-query.selector-runtime_id.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.notice-query.stale-epoch.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.notice-query.stale-generation.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.notice-query.unsupported-capability.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.notice-query.unsupported-version.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.notice-query.zero-epoch.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.notice-result.consume-many.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.notice-result.content-attempts.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.notice-result.content-id.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.notice-result.content-lease.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.notice-result.content-lease_expires_at.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.notice-result.content-pulled.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.notice-result.content-unknown.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.notice-result.long-id.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.notice-result.missing-repository.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.notice-result.newline-message_id.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.notice-result.provenance.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.notice-result.result-byte-limit.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.notice-result.source-byte-limit.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.notice-result.wake.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.ready-and-lease-renewal.renewal-zero-sequence.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.ready-and-lease-renewal.unknown-auth-state.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.ready-and-lease-renewal.unknown-health.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.task-commitment.illustrative-verb.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.task-commitment.missing-operation-id.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.task-record.unknown-status.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.task-record.waiting-without-reason.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.transfer-record.carries-grant.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.transfer-record.no-epoch-evidence.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.typed-note.empty-body.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.wire-frame.duplicate-key.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.wire-frame.oversized.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.wire-frame.stale-expiry.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-v0.5.0.negative.wire-frame.unknown-required-capability.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.positive.action-record.prepared-before-send.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.positive.action-record.unknown-awaiting-reconciliation.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.positive.admission-result.client-identified.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.positive.admission-result.cooperative.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.positive.admission-result.ok.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.positive.approval-record.bounded-class.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.positive.approval-record.single-action.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.positive.candidate-revision-record.evaluated-awaiting-owner.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.positive.credential-issuance-record.dpop-bound.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.positive.directive-or-query.from-owner.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.positive.directive-or-query.which-binding-applies.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.positive.dream-grant-record.standard.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.positive.equip.lead.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.positive.error-response.credential-unavailable.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.positive.error-response.stale-epoch.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.positive.eval-plan-record.two-cells.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.positive.grant-record.edit-scratch.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.positive.grant-record.scoped-to-member.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.positive.hello.client-reported.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.positive.hello.first-start.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.positive.hello.move.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.positive.lifecycle-request.accept-revision-with-deadline.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.positive.lifecycle-request.pause.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.positive.ready-and-lease-renewal.renewal-cold.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.positive.ready-and-lease-renewal.warm.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.positive.task-commitment.complete.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.positive.task-record.offered.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.positive.task-record.waiting-credential-unavailable.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.positive.transfer-record.coordinated-move.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.positive.typed-note.finding-external-derived.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.positive.typed-note.handoff-before-lead-yields.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.positive.wire-frame.notify-unsealed.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.positive.wire-frame.sealed-task-wake.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.negative.action-record.missing-idempotency-key.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.negative.action-record.unknown-state.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.negative.admission-result.client-no-source.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.negative.admission-result.client-unknown-source.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.negative.admission-result.epoch-zero.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.negative.admission-result.no-lease-generation.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.negative.admission-result.short-binding.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.negative.admission-result.unknown-profile.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.negative.approval-record.expired.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.negative.approval-record.malformed-digest.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.negative.candidate-revision-record.change-without-provenance.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.negative.candidate-revision-record.partial-accept-status.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.negative.credential-issuance-record.embeds-token.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.negative.credential-issuance-record.short-thumbprint.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.negative.directive-or-query.from-peer-text.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.negative.dream-grant-record.traversal-into-primitives.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.negative.dream-grant-record.writes-primitives.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.negative.dream-grant-record.zero-wall-clock.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.negative.equip.embeds-secret.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.negative.equip.user-chosen-short-handle.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.negative.error-response.carries-token.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.negative.error-response.empty-explanation.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.negative.error-response.no-correlation-id.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.negative.error-response.unregistered-code.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.negative.eval-plan-record.no-cells.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.negative.grant-record.negative-budget.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.negative.grant-record.unscoped.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.negative.hello.bad-digest.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.negative.hello.client-bad-app-id.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.negative.hello.client-source-claimed.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.negative.hello.missing-lead.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.negative.hello.stale-epoch.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.negative.hello.two-leads.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.negative.hello.unaccepted-definition.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.negative.hello.unknown-field.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.negative.hello.unpinned-version.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.negative.hello.unsupported-profile.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.negative.hello.unsupported-version.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.negative.hello.version-zero.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.negative.lifecycle-request.missing-owner-session.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.negative.lifecycle-request.recovery-operation.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.negative.ready-and-lease-renewal.renewal-zero-sequence.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.negative.ready-and-lease-renewal.unknown-auth-state.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.negative.ready-and-lease-renewal.unknown-health.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.negative.task-commitment.illustrative-verb.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.negative.task-commitment.missing-operation-id.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.negative.task-record.unknown-status.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.negative.task-record.waiting-without-reason.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.negative.transfer-record.carries-grant.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.negative.transfer-record.no-epoch-evidence.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.negative.typed-note.empty-body.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.negative.wire-frame.duplicate-key.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.negative.wire-frame.oversized.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.negative.wire-frame.stale-expiry.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-v0.4.1.negative.wire-frame.unknown-required-capability.json",
+      "layer": "shared-fixture-schema-or-parse-only",
+      "outcome": "passed"
+    },
+    {
+      "id": "comms-vendored-contract-provenance",
+      "layer": "dependency",
+      "outcome": "passed"
+    },
+    {
+      "id": "comms-v0.4.1.positive.action-record.prepared-before-send.json",
+      "layer": "shared-fixture-production-comms-codec",
+      "outcome": "passed"
+    },
+    {
+      "id": "comms-v0.4.1.positive.action-record.unknown-awaiting-reconciliation.json",
+      "layer": "shared-fixture-production-comms-codec",
+      "outcome": "passed"
+    },
+    {
+      "id": "comms-v0.4.1.positive.directive-or-query.from-owner.json",
+      "layer": "shared-fixture-production-comms-codec",
+      "outcome": "passed"
+    },
+    {
+      "id": "comms-v0.4.1.positive.directive-or-query.which-binding-applies.json",
+      "layer": "shared-fixture-production-comms-codec",
+      "outcome": "passed"
+    },
+    {
+      "id": "comms-v0.4.1.positive.task-commitment.complete.json",
+      "layer": "shared-fixture-production-comms-codec",
+      "outcome": "passed"
+    },
+    {
+      "id": "comms-v0.4.1.positive.task-record.offered.json",
+      "layer": "shared-fixture-production-comms-codec",
+      "outcome": "passed"
+    },
+    {
+      "id": "comms-v0.4.1.positive.task-record.waiting-credential-unavailable.json",
+      "layer": "shared-fixture-production-comms-codec",
+      "outcome": "passed"
+    },
+    {
+      "id": "comms-v0.4.1.positive.wire-frame.notify-unsealed.json",
+      "layer": "shared-fixture-production-comms-codec",
+      "outcome": "passed"
+    },
+    {
+      "id": "comms-v0.4.1.positive.wire-frame.sealed-task-wake.json",
+      "layer": "shared-fixture-production-comms-codec",
+      "outcome": "passed"
+    },
+    {
+      "id": "comms-v0.4.1.negative.action-record.missing-idempotency-key.json",
+      "layer": "shared-fixture-production-comms-codec",
+      "outcome": "passed"
+    },
+    {
+      "id": "comms-v0.4.1.negative.action-record.unknown-state.json",
+      "layer": "shared-fixture-production-comms-codec",
+      "outcome": "passed"
+    },
+    {
+      "id": "comms-v0.4.1.negative.directive-or-query.from-peer-text.json",
+      "layer": "shared-fixture-production-comms-codec",
+      "outcome": "passed"
+    },
+    {
+      "id": "comms-v0.4.1.negative.task-commitment.illustrative-verb.json",
+      "layer": "shared-fixture-production-comms-codec",
+      "outcome": "passed"
+    },
+    {
+      "id": "comms-v0.4.1.negative.task-commitment.missing-operation-id.json",
+      "layer": "shared-fixture-production-comms-codec",
+      "outcome": "passed"
+    },
+    {
+      "id": "comms-v0.4.1.negative.task-record.unknown-status.json",
+      "layer": "shared-fixture-production-comms-codec",
+      "outcome": "passed"
+    },
+    {
+      "id": "comms-v0.4.1.negative.task-record.waiting-without-reason.json",
+      "layer": "shared-fixture-production-comms-codec",
+      "outcome": "passed"
+    },
+    {
+      "id": "comms-v0.4.1.negative.wire-frame.duplicate-key.json",
+      "layer": "shared-fixture-production-comms-codec",
+      "outcome": "passed"
+    },
+    {
+      "id": "comms-v0.4.1.negative.wire-frame.oversized.json",
+      "layer": "shared-fixture-production-comms-codec",
+      "outcome": "passed"
+    },
+    {
+      "id": "comms-v0.4.1.negative.wire-frame.stale-expiry.json",
+      "layer": "shared-fixture-production-comms-codec",
+      "outcome": "passed"
+    },
+    {
+      "id": "comms-v0.4.1.negative.wire-frame.unknown-required-capability.json",
+      "layer": "shared-fixture-production-comms-codec",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-wire-v1-supported",
+      "layer": "production-codec",
+      "outcome": "passed"
+    },
+    {
+      "id": "comms-wire-v1-supported",
+      "layer": "production-codec",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-unknown-required-capability",
+      "layer": "production-codec",
+      "outcome": "passed"
+    },
+    {
+      "id": "comms-unknown-required-capability",
+      "layer": "production-codec",
+      "outcome": "passed"
+    },
+    {
+      "id": "comms-wire-unsupported-major-shape-refused",
+      "layer": "production-codec",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-hello-unsupported-offered-versions",
+      "layer": "real-HQ-socket",
+      "outcome": "passed"
+    },
+    {
+      "id": "hq-hello-malformed-contract",
+      "layer": "real-HQ-socket",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-to-HQ-supported-v1-handshake",
+      "layer": "real-cross-component-socket",
+      "outcome": "passed"
+    },
+    {
+      "id": "souls-to-HQ-unsupported-versions-refusal",
+      "layer": "real-cross-component-socket",
+      "outcome": "passed"
+    },
+    {
+      "id": "real-broker-supported-notice-capability",
+      "layer": "real-HQ-comms-broker",
+      "outcome": "passed"
+    },
+    {
+      "id": "real-broker-unknown-capability",
+      "layer": "real-HQ-comms-broker",
+      "outcome": "passed"
+    },
+    {
+      "id": "real-broker-unsupported-contract",
+      "layer": "real-HQ-comms-broker",
+      "outcome": "passed"
+    }
+  ],
+  "platform": {
+    "revision": "c8fcd6c39ae78d45af70ce36ae93a62bf4b4e992",
+    "fetchedAt": "2026-11-16T20:09:09.047Z",
+    "source": "main (fresh, uncached)",
+    "files": {
+      "AGENTS.md": "1104dafa30058dad63fbe0e053cbb0b7aa2e36936ec44fdc80fc74dc58c23964",
+      "registry/tests.yaml": "fd365d782bd395bb344601392f1ad512c96059ff3df8c78628a59164024db762",
+      "registry/requirements.yaml": "00cd59f21c04484f3c6422954d050f41dd3c99380d0328b7a6fbce56935e7d0d",
+      "docs/04-decisions/PDR-0020-components-read-the-platform-at-main.md": "92c71902c5ad837f5473a4bce47519a4fb25fc552cdc109433d889aeaff4f4be",
+      "docs/00-governance/authority-and-ownership.md": "216ab57e77cc61786ac8c9d2d1fa0cf103c4b5107899fa21606779b01f51f60b",
+      "docs/08-release/release-conformance-report.md": "c88f512a9be6ee8bfea08c6ff1594e7fac48fc2b34643a9a63ecd9db27550f4d"
+    }
+  },
+  "contractRelease": {
+    "schema_version": 1,
+    "repository": "https://github.com/true-line/soul-contracts.git",
+    "tag": "v0.5.0",
+    "commit": "b96239cc47571237f7064ddbcbd0edec8e365c6b",
+    "paths": [
+      "errors",
+      "fixtures",
+      "schemas"
+    ],
+    "digest_algorithm": "sha256-manifest-v1",
+    "digest": "sha256:0927de7b4f3879c91a5b5a3057a579eefe38013b961b710514c0cd9f42226124",
+    "files": 154,
+    "verified": true
+  },
+  "commsContractSource": {
+    "repository": "https://github.com/true-line/soul-contracts",
+    "tag": "v0.4.1",
+    "commit": "d9ca0731fbe7bbf7a29d066c8a23cd92717ee9bd",
+    "files": {
+      "schemas/task/v1/action-record.schema.json": "f01c34bbaf0da722ada7d6de99b96f56fb9af0d2d32920a3b3bf860d90d0e8fb",
+      "schemas/task/v1/task-commitment.schema.json": "02af29d7266e5cc19743db67ec3941ab888864b0fbdd7ef687d46bd6e629a391",
+      "schemas/task/v1/task-record.schema.json": "1bc854510d075e1ad4c711de7d155ca549ef33cf6e6f6613fd58811dfbd04be2",
+      "schemas/wire/v1/directive-or-query.schema.json": "5d363b90bf024ded47d2a259ab1d9a0682b9edea394d7255dd916e23e63a295f",
+      "schemas/wire/v1/wire-frame.schema.json": "b4da419a962c4386a679c577ae7ff94c759aee5674b8f6bd246b009f7cabd0d6"
+    }
+  },
+  "definitionRevision": "sha256:a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+  "policyDigest": "sha256:41db5d4966f5d6b40477927e338621ce05a429520b4290c0774615ce5094d3bd",
+  "observedProfile": "managed-cooperative",
+  "outcome": {
+    "implemented": "passed",
+    "overallT14": "blocked",
+    "policyBlocked": true,
+    "inventoryErrors": [],
+    "blockers": [
+      "No accepted controlled previous-supported-major inventory/bootstrap applicability decision exists for the v1-only implementations; see proposed platform Discussion 75."
+    ]
+  },
+  "finishedAt": "2026-11-16T20:09:09.367Z",
+  "summaryByLayer": {
+    "shared-fixture-schema-or-parse-only": {
+      "passed": 214,
+      "failed": 0
+    },
+    "dependency": {
+      "passed": 1,
+      "failed": 0
+    },
+    "shared-fixture-production-comms-codec": {
+      "passed": 20,
+      "failed": 0
+    },
+    "production-codec": {
+      "passed": 5,
+      "failed": 0
+    },
+    "real-HQ-socket": {
+      "passed": 2,
+      "failed": 0
+    },
+    "real-cross-component-socket": {
+      "passed": 2,
+      "failed": 0
+    },
+    "real-HQ-comms-broker": {
+      "passed": 3,
+      "failed": 0
+    }
+  },
+  "summaryByCorpus": {
+    "hq-v0.5.0": {
+      "passed": 126,
+      "failed": 0
+    },
+    "souls-v0.4.1": {
+      "passed": 88,
+      "failed": 0
+    },
+    "independent-boundaries-and-provenance": {
+      "passed": 13,
+      "failed": 0
+    },
+    "comms-v0.4.1": {
+      "passed": 20,
+      "failed": 0
+    }
+  },
+  "evidenceReferences": [
+    ".github/CODEOWNERS",
+    ".github/workflows/t14.yml",
+    ".gitignore",
+    "CHANGELOG.md",
+    "README.md",
+    "dependencies.json",
+    "evals/README.md",
+    "package.json",
+    "scripts/dependencies.py",
+    "scripts/platform.mjs",
+    "simulators/README.md",
+    "simulators/fake-adapter/.gitkeep",
+    "simulators/fake-provider/.gitkeep",
+    "simulators/fake-service/.gitkeep",
+    "suites/T01-caller-binding/README.md",
+    "suites/T02-key-boundary/README.md",
+    "suites/T03-direct-egress/README.md",
+    "suites/T04-source-authority/README.md",
+    "suites/T05-duplicate-message/README.md",
+    "suites/T06-ambiguous-effect/README.md",
+    "suites/T07-competing-leads/README.md",
+    "suites/T08-revoked-work/README.md",
+    "suites/T09-destination-change/README.md",
+    "suites/T10-memory-laundering/README.md",
+    "suites/T11-aggregate-budget/README.md",
+    "suites/T12-split-planes/README.md",
+    "suites/T13-partition/README.md",
+    "suites/T14-version-mismatch/README.md",
+    "suites/T14-version-mismatch/case-inventory.json",
+    "suites/T14-version-mismatch/oracles.mjs",
+    "suites/T14-version-mismatch/run.mjs",
+    "suites/T15-transfer/README.md",
+    "suites/T16-package-attack/README.md",
+    "suites/T17-cancellation-race/README.md",
+    "suites/T18-storage-failure/README.md",
+    "suites/T19-taint-egress/README.md",
+    "suites/T20-proposal-only/README.md",
+    "suites/T21-profile-honesty/README.md",
+    "suites/T22-self-activation/README.md",
+    "suites/T23-poison-message/README.md",
+    "suites/T24-approval-binding/README.md",
+    "suites/T25-message-expiry/README.md",
+    "suites/T26-budget-exhaustion/README.md",
+    "suites/T27-version-coverage/README.md",
+    "suites/T28-partial-cell-failure/README.md",
+    "suites/T29-dream-limits/README.md",
+    "suites/T30-source-chain/README.md",
+    "suites/TESTS.md",
+    "templates/hello.soul/README.md",
+    "tests/oracles.test.mjs"
+  ],
+  "suiteContentSha256": "8ef3c88cfa4fb5d8024454374cb17eca0506165d1e90e0e488453116c5c1aa55"
+}

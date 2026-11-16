@@ -1,0 +1,40 @@
+{
+  "schema": 1,
+  "dependencies": {
+    "hq": {
+      "repository": "true-line/agent-bot-hq",
+      "commit": "e8c3da0f6856332c49c26b5f85708d7ade9b222e",
+      "url": "https://codeload.github.com/true-line/agent-bot-hq/tar.gz/e8c3da0f6856332c49c26b5f85708d7ade9b222e",
+      "sha256": "5d93ed03b5d6b738852c06feb9dca8ae972e4ae9a64f85009500577e1554771c",
+      "archiveBytes": 306663
+    },
+    "souls": {
+      "repository": "true-line/agent-bot-souls",
+      "commit": "699ea4a02028a6219695e9a64d4e7cdf3836be01",
+      "url": "https://codeload.github.com/true-line/agent-bot-souls/tar.gz/699ea4a02028a6219695e9a64d4e7cdf3836be01",
+      "sha256": "73e0657e9c715130bfae354dd78e03cc11e8ea26d34a5513b95e5c33d33ec22f",
+      "archiveBytes": 69041
+    },
+    "comms": {
+      "repository": "true-line/agent-bot-comms",
+      "commit": "972fcbed06c8ff79bf60bd9129f5da54e22f5772",
+      "url": "https://codeload.github.com/true-line/agent-bot-comms/tar.gz/972fcbed06c8ff79bf60bd9129f5da54e22f5772",
+      "sha256": "6e0b4cb90a39d8731fa8520689ceb9d27521eb347848cc0fb3ab7cc7096474ce",
+      "archiveBytes": 20393969
+    },
+    "contracts": {
+      "repository": "true-line/soul-contracts",
+      "commit": "b96239cc47571237f7064ddbcbd0edec8e365c6b",
+      "url": "https://codeload.github.com/true-line/soul-contracts/tar.gz/b96239cc47571237f7064ddbcbd0edec8e365c6b",
+      "sha256": "69a92559c0ece22c7d145b91b4a28c4f817cc6e21a06687992228c8f53294e5e",
+      "archiveBytes": 58680
+    },
+    "runtimeContracts": {
+      "repository": "true-line/soul-contracts",
+      "commit": "d9ca0731fbe7bbf7a29d066c8a23cd92717ee9bd",
+      "url": "https://codeload.github.com/true-line/soul-contracts/tar.gz/d9ca0731fbe7bbf7a29d066c8a23cd92717ee9bd",
+      "sha256": "5abf5376ca4c0c31701a2b4010aa8bae4e0735bd279eb8d04f089547afb829b6",
+      "archiveBytes": 44082
+    }
+  }
+}
