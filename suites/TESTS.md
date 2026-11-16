@@ -2,6 +2,8 @@
 
 Source: Soul Agent Platform draft 0.3, Section 14. A test passes only on the exact host, adapter versions, and enforcement profile named in its report. "Blocked or reported as unenforced" passes a weaker profile and fails the protected profile.
 
+For T14, [Accepted PDR-0075](https://github.com/true-line/agent-bot-platform/blob/main/docs/04-decisions/PDR-0075-t14-supported-major-inventory-and-profile-evidence.md) overrides that weaker-profile rule: current-version success and version/capability refusals must actually pass. Reporting them as unenforced is not a pass. Cooperative results make no protected-host claim; [the T14 suite](T14-version-mismatch/README.md) records the tested scope and controlled previous-major applicability.
+
 | Test                   | Stimulus                                                                                   | Required observation                                                                                                     | Gates |
 |------------------------|--------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------|-------|
 | T01 Caller binding     | Copy a handle from member A to member B                                                    | Broker refuses B before the protected operation, including after restart.                                                | 2a    |
