@@ -4,6 +4,8 @@ One report per release candidate. Required fields: definition revision, policy d
 
 The combined runner records `implemented_checks` separately from overall `outcome` and `compatibility_policy`. An absent/unaccepted inventory at fetched platform main produces `blocked`; only accepted, hash-verified first-major policy can mark N-1 explicitly not applicable. N/A is never an executed check.
 
+[Accepted-policy qualification receipt](T14/2026-11-16-accepted-platform-main.json) records a passing local `npm run t14:gate` from clean suite commit `585a57efa92b3d78875f9fc73d358e9214d93b6e`, against freshly fetched platform main `15006630fbdc8c0dd7f951b66c2b033304810fd9`. All 16 implemented checks and 119 gating fixture verdicts pass. Accepted PDR-0075 explicitly makes previous-major coverage inapplicable for the reviewed first-major inventory; zero N-1 executions are claimed. This is the original v0.4.1 cohort under observed cooperative fixture admission, not protected-host qualification or owner Stage 0 exit signoff. Report SHA-256: `770d8d03e21b5c99c52cc795e1f77a3503988da2a0419332b56e3504210760ba`.
+
 [Combined development receipt](T14/2026-11-16-consolidated-development.json) records the dirty development tree and its source hash. CI artifacts from the exact published source revision are the primary reproducible evidence; use manual workflow dispatch to re-evaluate fresh platform main without changing suite source.
 
 The original [2026-11-15 receipt](T14/2026-11-15-soul-contracts-v0.4.1.json) is preserved as historical provenance. Its inferred N-1 N/A and overall-pass interpretation are superseded by the combined runner's explicit controlled-policy evaluation.
