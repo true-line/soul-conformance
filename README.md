@@ -12,6 +12,14 @@ Source of record: Soul Agent Platform draft 0.3, Section 14 and Appendix D (`sou
 - `evals/` — the evaluation-cell harness: baseline-in-run replay, train and held-out split, regression rule, ATIF output, per-cell summary.
 - `reports/` — release reports naming definition revision, policy digest, dependency versions, enforcement profile, host, and adapter versions.
 
+## Run
+
+```sh
+npm run prepare:pins && npm test && npm run t14
+```
+
+Node 20 or later, Python 3, git, and network access to the public true-line repositories; nothing else is installed. Suites that run today: T14 current-major evidence ([suites/T14-version-mismatch](suites/T14-version-mismatch/README.md)). Use `--out reports/T14/<name>.json` to save a report. `npm run t14` verifies implemented checks; `npm run t14:gate` additionally requires the accepted compatibility inventory at freshly fetched platform main. A green evidence job can still report the policy gate blocked.
+
 ## Depends on
 
 `soul-contracts` (schemas, fixtures, error registry) at build time; the binaries under test (`managed-machine`, `agent-bot-identity`, `agent-comms`, `soul-adapters`) at test time only. Nothing depends on this repository.

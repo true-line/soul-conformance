@@ -1,0 +1,17 @@
+{
+  "name": "soul-conformance",
+  "version": "0.2.0",
+  "private": true,
+  "license": "MIT",
+  "description": "Independent Soul conformance: T14 current-major checks and controlled compatibility-policy gate",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "prepare:pins": "node scripts/prepare.mjs",
+    "t14": "node suites/T14-version-mismatch/run.mjs",
+    "test": "node --test --test-concurrency=1 tests/*.test.mjs",
+    "t14:gate": "node suites/T14-version-mismatch/run.mjs --gate"
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "archives": {
+    "contracts": {
+      "commit": "d9ca0731fbe7bbf7a29d066c8a23cd92717ee9bd",
+      "url": "https://codeload.github.com/true-line/soul-contracts/tar.gz/d9ca0731fbe7bbf7a29d066c8a23cd92717ee9bd",
+      "archiveBytes": 44082,
+      "sha256": "5abf5376ca4c0c31701a2b4010aa8bae4e0735bd279eb8d04f089547afb829b6"
+    },
+    "runtime": {
+      "commit": "c5a858db699f873283bb2fc0d196f47663747444",
+      "url": "https://codeload.github.com/true-line/agent-bot-souls/tar.gz/c5a858db699f873283bb2fc0d196f47663747444",
+      "archiveBytes": 58404,
+      "sha256": "35fff8c21f5f3224c3c1a96e36d4520a6f5bc246cb7894d8ec3f7f5c1dac4223"
+    },
+    "broker": {
+      "commit": "972fcbed06c8ff79bf60bd9129f5da54e22f5772",
+      "url": "https://codeload.github.com/true-line/agent-bot-comms/tar.gz/972fcbed06c8ff79bf60bd9129f5da54e22f5772",
+      "archiveBytes": 20393969,
+      "sha256": "6e0b4cb90a39d8731fa8520689ceb9d27521eb347848cc0fb3ab7cc7096474ce"
+    },
+    "hq": {
+      "commit": "f3c39d2a703085c14bc09f8f0042d048f30525dc",
+      "url": "https://codeload.github.com/true-line/agent-bot-hq/tar.gz/f3c39d2a703085c14bc09f8f0042d048f30525dc",
+      "archiveBytes": 276341,
+      "sha256": "8f7c6ee4c0de4cd59d3bd935b4ed5f4a430e69bec346c2d5a04e1463ae504b54"
+    }
+  }
+}

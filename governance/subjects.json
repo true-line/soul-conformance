@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "note": "Implementations under test, pinned by commit. A bump is a reviewer change: it lands here, never in a subject repository.",
+  "subjects": {
+    "runtime": {
+      "repository": "https://github.com/true-line/agent-bot-souls.git",
+      "commit": "c5a858db699f873283bb2fc0d196f47663747444",
+      "entry": "lib/contracts.mjs"
+    },
+    "broker": {
+      "repository": "https://github.com/true-line/agent-bot-comms.git",
+      "commit": "972fcbed06c8ff79bf60bd9129f5da54e22f5772",
+      "entry": "lib/contracts/wire-v1.mjs"
+    },
+    "hq": {
+      "repository": "https://github.com/true-line/agent-bot-hq.git",
+      "commit": "f3c39d2a703085c14bc09f8f0042d048f30525dc",
+      "entry": "hq/hq.mjs"
+    }
+  }
+}
