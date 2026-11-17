@@ -1,4 +1,4 @@
-name: T14 current-major evidence
+name: conformance evidence
 on:
   push:
     branches: [main]
@@ -23,6 +23,8 @@ jobs:
         run: npm test
       - name: T14 evidence against fresh platform main
         run: node suites/T14-version-mismatch/run.mjs --out reports/T14-latest.json
+      - name: Stage 1 T04 T05 T20 evidence
+        run: node suites/stage1/run.mjs --out reports/stage1-latest.json
       - name: Verify implemented checks and honest policy outcome
         run: |
           node --input-type=module - <<'JS'
@@ -30,17 +32,24 @@ jobs:
           import { readFileSync } from 'node:fs';
           import { validateInventory } from './lib/inventory.mjs';
           import { policyVerdict } from './lib/platform.mjs';
-          const report = JSON.parse(readFileSync('reports/T14-latest.json'));
-          validateInventory({ ...report, outcome: report.implemented_checks });
-          assert.equal(report.implemented_checks, 'pass');
-          const policy = policyVerdict(report.platform_context, report.protocol_current);
-          assert.equal(report.outcome, policy.status === 'satisfied' ? 'pass' : 'blocked');
-          assert.equal(report.compatibility_policy.n_minus_1, policy.n_minus_1);
+          import { validateStage1Report } from './lib/stage1-report.mjs';
+          const t14 = JSON.parse(readFileSync('reports/T14-latest.json'));
+          validateInventory({ ...t14, outcome: t14.implemented_checks });
+          assert.equal(t14.implemented_checks, 'pass');
+          const policy = policyVerdict(t14.platform_context, t14.protocol_current);
+          assert.equal(t14.outcome, policy.status === 'satisfied' ? 'pass' : 'blocked');
+          assert.equal(t14.compatibility_policy.n_minus_1, policy.n_minus_1);
+          const stage1 = JSON.parse(readFileSync('reports/stage1-latest.json'));
+          validateStage1Report(stage1);
+          assert.equal(stage1.outcome, 'pass');
+          assert.equal(stage1.suite_revision.clean, true);
           JS
       - name: Retain the exact-run report
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: T14-current-major-evidence
-          path: reports/T14-latest.json
+          name: conformance-evidence
+          path: |
+            reports/T14-latest.json
+            reports/stage1-latest.json
           if-no-files-found: error
