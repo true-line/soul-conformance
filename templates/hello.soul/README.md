@@ -1,7 +1,21 @@
 # hello.soul
 
-Template for the first task. Two fake adapters (lead, specialist), one simulated service, no credentials. Produces a new Soul ID on instantiation.
+A credential-free Stage 1 sample with one lead, one specialist, the pinned
+production `agent-bot-souls chat` entry point and its deterministic fake
+adapter. The conformance harness supplies a pinned real HQ and deterministic
+broker transport, copies this template to a short-lived directory, materializes
+the host-specific adapter command, offers the seeded task and verifies one
+proposal and one final commitment from HQ's authoritative records.
 
-Task: investigate a seeded issue, change one file in a scratch workspace, run the approved checks, produce a reviewable change. Exercises T04, T05, T20 locally.
+From the `soul-conformance` checkout:
 
-Status: not started; layout follows `soul-package/spec/LAYOUT.md`.
+```sh
+npm run prepare:pins
+npm run quickstart -- --out reports/hello-soul-latest.json
+```
+
+The command exits zero only when the real chat command admits this template
+under `managed-cooperative`, both members start, the specialist creates one
+proposal, the lead makes the sole final commitment, and the artifact exists.
+The report names the exact runtime, HQ, contracts, platform policy, host and
+simulated transport. It makes no protected-host claim and uses no credentials.

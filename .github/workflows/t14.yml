@@ -10,6 +10,8 @@ jobs:
   t14:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
+    env:
+      SOUL_CONFORMANCE_GITHUB_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
@@ -25,6 +27,8 @@ jobs:
         run: node suites/T14-version-mismatch/run.mjs --out reports/T14-latest.json
       - name: Stage 1 T04 T05 T20 evidence
         run: node suites/stage1/run.mjs --out reports/stage1-latest.json
+      - name: Runnable hello.soul quickstart
+        run: node templates/hello.soul/run.mjs --out reports/hello-soul-latest.json
       - name: Verify implemented checks and honest policy outcome
         run: |
           node --input-type=module - <<'JS'
@@ -33,6 +37,7 @@ jobs:
           import { validateInventory } from './lib/inventory.mjs';
           import { policyVerdict } from './lib/platform.mjs';
           import { validateStage1Report } from './lib/stage1-report.mjs';
+          import { validateHelloSoulReport } from './lib/hello-soul-report.mjs';
           const t14 = JSON.parse(readFileSync('reports/T14-latest.json'));
           validateInventory({ ...t14, outcome: t14.implemented_checks });
           assert.equal(t14.implemented_checks, 'pass');
@@ -43,7 +48,19 @@ jobs:
           validateStage1Report(stage1);
           assert.equal(stage1.outcome, 'pass');
           assert.equal(stage1.suite_revision.clean, true);
+          const quickstart = JSON.parse(readFileSync('reports/hello-soul-latest.json'));
+          validateHelloSoulReport(quickstart);
+          assert.equal(quickstart.outcome, 'pass');
+          assert.equal(quickstart.suite_revision.clean, true);
           JS
+      - name: Emit the exact hello.soul report
+        if: always()
+        run: |
+          if [[ -f reports/hello-soul-latest.json ]]; then
+            printf '%s\n' 'HELLO_SOUL_REPORT_BEGIN'
+            cat reports/hello-soul-latest.json
+            printf '%s\n' 'HELLO_SOUL_REPORT_END'
+          fi
       - name: Retain the exact-run report
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -52,4 +69,5 @@ jobs:
           path: |
             reports/T14-latest.json
             reports/stage1-latest.json
+            reports/hello-soul-latest.json
           if-no-files-found: error

@@ -1,0 +1,8 @@
+{
+  "fake-adapter": {
+    "command": [
+      "agent-bot-souls",
+      "fake-adapter"
+    ]
+  }
+}
