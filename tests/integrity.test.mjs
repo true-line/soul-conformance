@@ -30,22 +30,29 @@ function mocked(inventory, change = {}) {
   const policy = inventory === undefined ? { schema_version: 1, status: 'Accepted', decision: 'PDR-0075', decision_path: 'docs/04-decisions/PDR-0075-first-major.md', protocols: Object.fromEntries(['hq', 'wire'].map((name) => [name, { current_major: 1, first_supported_major: 1, previous_supported_major: null, evidence: [evidence] }])) } : inventory;
   const files = { 'AGENTS.md': 'instructions', 'registry/tests.yaml': '- id: T14\n', 'registry/requirements.yaml': '- id: R7\n', 'docs/04-decisions/PDR-0020-components-read-the-platform-at-main.md': 'Status: Accepted\n', 'docs/00-governance/authority-and-ownership.md': 'authority', 'docs/08-release/release-conformance-report.md': 'report', 'registry/protocol-compatibility.json': policy === null ? null : JSON.stringify(policy), 'docs/04-decisions/PDR-0075-first-major.md': '# PDR-0075\nStatus: Accepted\n', ...change };
   return { policy, fetcher: async (url) => {
-    const body = url.includes('/commits/main') ? JSON.stringify({ sha: 'a'.repeat(40) }) : url.includes('/agent-bot-platform/') ? files[url.split('/' + 'a'.repeat(40) + '/')[1]] : source;
+    const body = url.includes('/agent-bot-platform/') ? files[url.split('/' + 'a'.repeat(40) + '/')[1]] : source;
     return { ok: body !== null && body !== undefined, status: body === null || body === undefined ? 404 : 200, text: async () => body };
   } };
 }
+const fetchFixture = (fetcher) => platformContext(fetcher, () => `${'a'.repeat(40)}\trefs/heads/main\n`);
+test('fresh platform lookup requires the exact main reference', async () => {
+  for (const ref of ['', '1234\trefs/heads/main', `${'b'.repeat(40)}\trefs/heads/other`]) {
+    await assert.rejects(platformContext(mocked().fetcher, () => ref), /expected a single platform main ref/);
+  }
+});
+
 test('fresh platform fetch fails closed for network, invalid IDs, missing paths and malformed evidence', async () => {
-  await assert.rejects(platformContext(async () => { throw new Error('offline'); }), /offline/);
-  for (const change of [{ 'registry/tests.yaml': '- id: T99' }, { 'registry/requirements.yaml': '- id: R99' }, { 'docs/08-release/release-conformance-report.md': null }]) await assert.rejects(platformContext(mocked(undefined, change).fetcher));
+  await assert.rejects(fetchFixture(async () => { throw new Error('offline'); }), /offline/);
+  for (const change of [{ 'registry/tests.yaml': '- id: T99' }, { 'registry/requirements.yaml': '- id: R99' }, { 'docs/08-release/release-conformance-report.md': null }]) await assert.rejects(fetchFixture(mocked(undefined, change).fetcher));
   for (const mutate of [(p) => { p.protocols.hq.evidence[0].sha256 = '0'.repeat(64); }, (p) => { p.protocols.hq.evidence = []; }, (p) => { p.protocols.hq.previous_supported_major = 0; }, (p) => { p.decision_path = 'docs/PDR%2f0075.md'; }, (p) => { p.protocols.hq.evidence[0].path = 'hq/admission.mjs?x'; }]) {
-    const { policy } = mocked(); mutate(policy); await assert.rejects(platformContext(mocked(policy).fetcher));
+    const { policy } = mocked(); mutate(policy); await assert.rejects(fetchFixture(mocked(policy).fetcher));
   }
 });
 test('only accepted verified first-major inventory enables explicit N-1 N/A, never an executed case', async () => {
-  assert.equal(policyVerdict(await platformContext(mocked(null).fetcher)).status, 'blocked');
+  assert.equal(policyVerdict(await fetchFixture(mocked(null).fetcher)).status, 'blocked');
   const { policy } = mocked(); policy.status = 'Proposed';
-  assert.equal(policyVerdict(await platformContext(mocked(policy).fetcher)).status, 'blocked');
-  const context = await platformContext(mocked().fetcher);
+  assert.equal(policyVerdict(await fetchFixture(mocked(policy).fetcher)).status, 'blocked');
+  const context = await fetchFixture(mocked().fetcher);
   assert.deepEqual(policyVerdict(context).status, 'satisfied'); assert.equal(policyVerdict(context).n_minus_1, 'not-applicable');
   assert.throws(() => policyVerdict(context, { hq: 2, wire: 1 }), /contradicts/);
   context.compatibility.protocols.hq.previous_supported_major = 1; context.compatibility.protocols.hq.current_major = 2;
