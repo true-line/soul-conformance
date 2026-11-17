@@ -18,3 +18,8 @@ npm run quickstart -- --out reports/quickstart-latest.json
 ```
 
 The evidence command refuses a dirty checkout or a drifted archive pin.
+
+The `macOS owner quickstart` CI job runs this command on a native macOS 15
+runner. Its `macos-owner-quickstart` artifact records the Darwin version,
+architecture, HQ and runtime revisions, cooperative profile, and observed
+task results.
