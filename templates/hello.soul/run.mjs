@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { appendFileSync, cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { dirname, join } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import { readJson } from '../../lib/fixtures.mjs';
 import { buildHelloSoulReport, helloSoulMarkdown } from '../../lib/hello-soul-report.mjs';
 import { prepareContracts, prepareSubject, ROOT } from '../../lib/pins.mjs';
@@ -12,7 +12,8 @@ import { stage1PlatformContract } from '../../lib/stage1-platform.mjs';
 import { stage1Subject } from '../../lib/stage1-subject.mjs';
 
 const args = process.argv.slice(2);
-const out = args.includes('--out') ? args[args.indexOf('--out') + 1] : null;
+const outArg = args.includes('--out') ? args[args.indexOf('--out') + 1] : null;
+const out = outArg ? resolve(outArg) : null;
 const template = join(ROOT, 'templates/hello.soul');
 const json = (path) => JSON.parse(readFileSync(path, 'utf8'));
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));

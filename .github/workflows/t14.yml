@@ -51,6 +51,14 @@ jobs:
           assert.equal(quickstart.outcome, 'pass');
           assert.equal(quickstart.suite_revision.clean, true);
           JS
+      - name: Emit the exact hello.soul report
+        if: always()
+        run: |
+          if [[ -f reports/hello-soul-latest.json ]]; then
+            printf '%s\n' 'HELLO_SOUL_REPORT_BEGIN'
+            cat reports/hello-soul-latest.json
+            printf '%s\n' 'HELLO_SOUL_REPORT_END'
+          fi
       - name: Retain the exact-run report
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
