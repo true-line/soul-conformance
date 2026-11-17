@@ -77,11 +77,19 @@ try {
   if (!offered.ok) throw new Error(`hello.soul task offer refused: ${JSON.stringify(offered)}`);
   const taskId = offered.result.task_id;
   child.stdin.end('Please work the waiting task.\n/status\n/quit\n');
+  let chatTimeout;
   const timed = Promise.race([
     exited,
-    delay(30_000).then(() => { throw new Error('hello.soul chat timed out'); }),
+    new Promise((_, reject) => {
+      chatTimeout = setTimeout(() => reject(new Error('hello.soul chat timed out')), 30_000);
+    }),
   ]);
-  const exit = await timed;
+  let exit;
+  try {
+    exit = await timed;
+  } finally {
+    clearTimeout(chatTimeout);
+  }
   if (exit.code !== 0) throw new Error(`hello.soul chat exited ${exit.code ?? exit.signal}: ${stderr.trim()}`);
 
   const record = await host.task(taskId);
