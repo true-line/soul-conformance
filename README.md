@@ -15,10 +15,10 @@ Source of record: Soul Agent Platform draft 0.3, Section 14 and Appendix D (`sou
 ## Run
 
 ```sh
-npm run prepare:pins && npm test && npm run t14
+npm run prepare:pins && npm test && npm run t14 && npm run stage1
 ```
 
-Node 20 or later, Python 3, git, and network access to the public true-line repositories; nothing else is installed. Suites that run today: T14 current-major evidence ([suites/T14-version-mismatch](suites/T14-version-mismatch/README.md)). Use `--out reports/T14/<name>.json` to save a report. `npm run t14` verifies implemented checks; `npm run t14:gate` additionally requires the accepted compatibility inventory at freshly fetched platform main. A green evidence job can still report the policy gate blocked.
+Node 20 or later, Python 3, git, and network access to the public true-line repositories; nothing else is installed. Suites that run today: T14 current-major evidence ([suites/T14-version-mismatch](suites/T14-version-mismatch/README.md)) and the Stage 1 T04/T05/T20 task-authority flow. Each runner accepts `--out` for a JSON report. `npm run t14` verifies implemented checks; `npm run t14:gate` additionally requires the accepted compatibility inventory at freshly fetched platform main. A green T14 evidence job can still report the policy gate blocked.
 
 ## Depends on
 
