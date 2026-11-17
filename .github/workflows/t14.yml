@@ -10,6 +10,8 @@ jobs:
   t14:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
+    env:
+      SOUL_CONFORMANCE_GITHUB_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
