@@ -7,6 +7,26 @@ on:
 permissions:
   contents: read
 jobs:
+  credential-profile:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: true-line/agent-bot
+          ref: 64792415fd64ab99f41ad55a8317fa28734d1fb9
+          path: .cache/identity-service
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e
+        with:
+          go-version-file: .cache/identity-service/go.mod
+          cache-dependency-path: .cache/identity-service/go.sum
+      - name: Check protected credential refusal and cooperative issuance
+        working-directory: .cache/identity-service
+        run: go test -count=1 -v -tags=e2e "$GITHUB_WORKSPACE/suites/T21-profile-honesty/credential_profile_test.go"
   t14:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
