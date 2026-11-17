@@ -1,10 +1,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { readJson } from '../lib/fixtures.mjs';
 import { prepareContracts, prepareSubject } from '../lib/pins.mjs';
-import { QUICKSTART_CHECK_IDS, QUICKSTART_TEMPLATE, runQuickstart, templateSnapshot, validateQuickstartResult } from '../lib/quickstart.mjs';
+import { QUICKSTART_CHECK_IDS, QUICKSTART_TEMPLATE, instantiateQuickstart, runQuickstart, templateSnapshot, validateQuickstartResult } from '../lib/quickstart.mjs';
 import { buildQuickstartReport, validateQuickstartReport } from '../lib/quickstart-report.mjs';
 import { stage1Subject } from '../lib/stage1-subject.mjs';
 
@@ -17,6 +17,16 @@ test('checked-in hello.soul is a credential-free two-member package with a seede
   assert.deepEqual(info.members.map(({ member_id: id, role }) => [id, role]), [['m_lead', 'lead'], ['m_spec', 'specialist']]);
   const source = snapshot.paths.map((path) => readFileSync(join(QUICKSTART_TEMPLATE, path), 'utf8')).join('\n');
   assert.doesNotMatch(source, /private[_ -]?key|access[_ -]?token|client[_ -]?secret/i);
+});
+
+test('quickstart keeps its Unix socket path short when the checkout path is long', () => {
+  const instance = instantiateQuickstart({ runtimeDir: prepareSubject('runtime') });
+  try {
+    assert.ok(join(instance.contents, 'host', 'members.sock').length <= 107);
+    assert.ok(!instance.root.startsWith(join(QUICKSTART_TEMPLATE, '..', '..')), 'ephemeral host state must not inherit the checkout path length');
+  } finally {
+    rmSync(instance.root, { recursive: true, force: true });
+  }
 });
 
 test('hello.soul quickstart exercises the pinned production runtime entry point', { timeout: 120_000 }, async () => {
