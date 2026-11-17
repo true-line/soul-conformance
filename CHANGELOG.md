@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Replace the `hello.soul` placeholder with a runnable, credential-free package and fail-closed quickstart evidence through the pinned production HQ and Soul runtime.
 - Consolidate independent T14 work into the original harness, preserving its fixture loader, newer-peer fallback, positive capability control and implementation mutation tests.
 - Verify archive hashes and every cached source byte/mode before import; enforce mandatory case inventory and exact correlated refusal/no-decision checks.
 - Read platform main fresh and validate controlled compatibility policy; separate implemented evidence from the overall T14 gate, with explicit first-major N/A only under Accepted PDR-0075 inventory.

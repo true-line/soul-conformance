@@ -1,0 +1,8 @@
+{
+  "operation_id": "hello_soul_quickstart",
+  "objective": "Investigate the seeded issue, repair answer.txt, run the approved check, and produce a reviewable proposal.",
+  "done_criteria": "answer.txt contains status=fixed and check.mjs exits successfully.",
+  "write_scope": [
+    "workspace:hello-soul-scratch"
+  ]
+}
