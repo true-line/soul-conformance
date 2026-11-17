@@ -9,10 +9,22 @@ const template = join(ROOT, 'templates/hello.soul');
 const info = JSON.parse(readFileSync(join(template, 'Contents/SoulInfo.json'), 'utf8'));
 const lock = JSON.parse(readFileSync(join(template, 'Contents/SoulLock.json'), 'utf8'));
 const adapters = JSON.parse(readFileSync(join(template, 'Contents/host/adapters.json'), 'utf8'));
+const seed = JSON.parse(readFileSync(join(template, 'task.json'), 'utf8'));
+const proposal = {
+  proposal_id: 'prop_1', task_id: 'task_1', member_id: 'm_spec', role: 'specialist',
+  transition: 'completed', task_status: 'running', evidence: ['artifact_abc123'],
+};
 const observed = {
-  profile: 'managed-cooperative', member_count: 2, task_status: 'completed', task_revision: 3,
-  proposal_count: 1, proposal_role: 'specialist', final_commitments: 1, final_by: 'm_lead',
-  prompt_member: 'm_lead', artifact_exists: true,
+  profile: 'managed-cooperative',
+  members: [{ member_id: 'm_lead', role: 'lead' }, { member_id: 'm_spec', role: 'specialist' }],
+  task: {
+    task_id: 'task_1', requester: 'owner', objective: seed.objective, done_criteria: seed.done_criteria,
+    write_scope: seed.write_scope, status: 'completed', revision: 3, evidence: ['artifact_abc123', 'prop_1'],
+  },
+  proposals: [proposal],
+  commits: [{ kind: 'task.commit', task_id: 'task_1', by: 'm_lead', outcome: 'committed', status: 'completed' }],
+  chat: { exit_code: 0 },
+  artifact: { id: 'artifact_abc123', exists: true },
 };
 const sha = 'a'.repeat(40);
 const platformContract = {
@@ -28,21 +40,24 @@ test('hello.soul is a concrete two-member credential-free template', () => {
   ]);
   assert.equal(lock.definition_digest, `sha256:${'a1'.repeat(32)}`);
   assert.deepEqual(adapters, { 'fake-adapter': { command: ['agent-bot-souls', 'fake-adapter'] } });
-  assert.equal(JSON.stringify([info, lock, adapters]).includes('credential'), false);
+  assert.equal(JSON.stringify([info, lock, adapters, seed]).includes('credential'), false);
 });
 
-test('the hello.soul report is fail-closed and carries the quickstart evidence', () => {
-  const report = buildHelloSoulReport({ outcome: 'pass', observed }, {
+test('the hello.soul report recomputes evidence and fails closed', () => {
+  const report = buildHelloSoulReport({ outcome: 'pass', seed, observed }, {
     hello: { soul_id: info.soul_id, definition_digest: lock.definition_digest },
     platformContext: { revision: sha },
     platformContract,
   });
   assert.doesNotThrow(() => validateHelloSoulReport(report));
   for (const mutate of [
-    (value) => { value.checks[0].observed.profile = 'managed-protected'; },
-    (value) => { value.checks[0].observed.final_commitments = 2; },
-    (value) => { value.checks[0].observed.proposal_count = 0; },
-    (value) => { value.checks[0].observed.artifact_exists = false; },
+    (value) => { value.observations.profile = 'managed-protected'; },
+    (value) => { value.observations.members.push({ member_id: 'm_extra', role: 'specialist' }); },
+    (value) => { value.observations.proposals[0].role = 'lead'; },
+    (value) => { value.observations.commits[0].by = 'm_spec'; },
+    (value) => { value.observations.task.status = 'running'; },
+    (value) => { value.observations.chat.exit_code = 1; },
+    (value) => { value.observations.artifact.exists = false; },
     (value) => { value.adapter_versions = {}; },
     (value) => { value.policy_digest.value = 'd'.repeat(64); },
     (value) => { value.evidence_references = []; },
