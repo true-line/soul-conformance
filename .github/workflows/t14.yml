@@ -7,6 +7,37 @@ on:
 permissions:
   contents: read
 jobs:
+  macos-quickstart:
+    name: macOS owner quickstart
+    runs-on: macos-15
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '22'
+      - name: Run hello.soul on macOS
+        run: npm run quickstart -- --out reports/quickstart-macos.json
+      - name: Verify native cooperative evidence
+        run: |
+          node --input-type=module - <<'JS'
+          import assert from 'node:assert/strict';
+          import { readFileSync } from 'node:fs';
+          import { validateQuickstartReport } from './lib/quickstart-report.mjs';
+          const report = JSON.parse(readFileSync('reports/quickstart-macos.json'));
+          validateQuickstartReport(report);
+          assert.equal(report.outcome, 'pass');
+          assert.equal(report.host.os, 'darwin');
+          assert.equal(report.enforcement_profile.in_force, 'managed-cooperative');
+          JS
+      - name: Retain the macOS report
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: macos-owner-quickstart
+          path: reports/quickstart-macos.json
+          if-no-files-found: error
   t14:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
