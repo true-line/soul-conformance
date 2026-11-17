@@ -1,0 +1,8 @@
+{
+  "operation_id": "hello_soul_task",
+  "objective": "Investigate the seeded issue, change one file in the scratch workspace, run the checks, and produce a reviewable change.",
+  "done_criteria": "The specialist artifact exists and the lead makes one final commitment.",
+  "write_scope": [
+    "workspace:hello-soul"
+  ]
+}

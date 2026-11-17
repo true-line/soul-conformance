@@ -10,6 +10,7 @@
   },
   "scripts": {
     "prepare:pins": "node scripts/prepare.mjs",
+    "quickstart": "node templates/hello.soul/run.mjs",
     "stage1": "node suites/stage1/run.mjs",
     "t14": "node suites/T14-version-mismatch/run.mjs",
     "test": "node --test --test-concurrency=1 tests/*.test.mjs",
