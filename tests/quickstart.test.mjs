@@ -1,5 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
 import { readFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { readJson } from '../lib/fixtures.mjs';
@@ -38,6 +40,51 @@ test('hello.soul quickstart exercises the pinned production runtime entry point'
   assert.equal(result.outcome, 'pass');
   assert.deepEqual(result.checks.map(({ id, result: value }) => [id, value]), QUICKSTART_CHECK_IDS.map((id) => [id, 'pass']));
   assert.doesNotThrow(() => validateQuickstartResult(result));
+});
+
+test('chat CLI completes the seeded task with the specialist artifact as evidence', { timeout: 120_000 }, async (t) => {
+  const contracts = prepareContracts();
+  const hello = readJson(contracts, 'fixtures/positive/hello.first-start.json').input;
+  const instance = instantiateQuickstart({ runtimeDir: prepareSubject('runtime') });
+  t.after(() => rmSync(instance.root, { recursive: true, force: true }));
+  const subject = await stage1Subject(prepareSubject('hq'), contracts, hello);
+  const session = await subject.open();
+  t.after(() => session.close());
+
+  const offer = await session.owner('tasks.offer', { ...instance.task, accountable_soul: instance.soul.soul_id });
+  assert.equal(offer.ok, true, JSON.stringify(offer));
+  const taskId = offer.result.task_id;
+  const answer = join(instance.workspace, 'answer.txt');
+  assert.equal(readFileSync(answer, 'utf8'), 'status=broken\n');
+  const chat = promisify(execFile)(process.execPath, [instance.runtimeBin, 'chat', '--soul', instance.root, '--hq-home', session.hqHome], {
+    env: { HOME: instance.root, PATH: process.env.PATH, AGENT_BOT_SOUL_CONTRACTS: contracts },
+    timeout: 30_000,
+  });
+  chat.child.stdin.end('Work the waiting hello.soul task.\n/quit\n');
+  const { stdout } = await chat;
+
+  const { task, proposals } = await session.task(taskId);
+  assert.equal(proposals.length, 1);
+  const [proposal] = proposals;
+  assert.equal(proposal.member_id, 'm_spec');
+  assert.equal(proposal.role, 'specialist');
+  assert.equal(proposal.task_id, taskId);
+  assert.equal(proposal.transition, 'completed');
+  assert.equal(proposal.evidence.length, 1);
+  const [artifactId] = proposal.evidence;
+  assert.match(artifactId, /^artifact_[0-9a-f]+$/);
+  const artifact = join(instance.contents, 'home', 'm_spec', `${artifactId}.txt`);
+  const proposalBody = readFileSync(artifact, 'utf8');
+  assert.ok(proposalBody.includes(taskId) && proposalBody.includes(instance.task.objective), proposalBody);
+
+  assert.ok(stdout.includes(taskId) && stdout.includes(proposal.proposal_id), stdout);
+  assert.equal(readFileSync(answer, 'utf8'), 'status=fixed\n');
+  assert.equal(task.status, 'completed');
+  assert.ok(task.evidence.includes(artifactId));
+  assert.ok(task.evidence.includes(proposal.proposal_id));
+  const final = session.receipts().filter((row) =>
+    row.kind === 'task.commit' && row.task_id === taskId && row.outcome === 'committed' && row.status === 'completed');
+  assert.deepEqual(final.map((row) => row.by), ['m_lead']);
 });
 
 function completeResult() {
