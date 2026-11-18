@@ -18,6 +18,8 @@ jobs:
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
           node-version: '22'
+      - name: Exercise the quickstart and chat CLI on macOS
+        run: node --test tests/quickstart.test.mjs
       - name: Run hello.soul on macOS
         run: npm run quickstart -- --out reports/quickstart-macos.json
       - name: Verify native cooperative evidence
