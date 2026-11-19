@@ -8,7 +8,9 @@
 
 Report fields: definition revision, policy digest, dependency versions, enforcement profile, host, adapter versions, outcome, evidence references.
 
-The [credential profile test](credential_profile_test.go) covers one protected claim at the identity service. It sends a credential request to the real device HTTP handler in a loopback harness with a simulated upstream issuer. It checks the signed `403 profile_insufficient`, verifies that the refused request created no issuance, then checks the cooperative profile on a successful issuance and its stored record. The [identity-service CI job](https://github.com/true-line/agent-bot/pull/293) runs this public test against the private service checkout. For local verification, run the following in an authorized checkout of the service with the absolute path to this file. The credential route has a separate acceptance boundary from HQ admission.
+The [credential profile test](credential_profile_test.go) exercises the identity service's installation-token, provider-key and soul-token routes with a disposable tenant, software keys and a simulated upstream issuer. Each route returns a signed, request-bound `403 profile_insufficient` for a protected claim. The test checks that the operation has no issuance, then repeats it under the cooperative profile and verifies the profile on the reply and stored record. Only the cooperative installation-token request reaches the simulated upstream issuer.
+
+The [identity-service CI job](https://github.com/true-line/agent-bot/pull/293) pins a revision of this public test for use with its private service checkout. To verify the current test, run the following in an authorized checkout of the service with the absolute path to the test file. HQ admission has a separate acceptance boundary.
 
 ```sh
 go test -race -count=1 -v -tags=e2e /path/to/soul-conformance/suites/T21-profile-honesty/credential_profile_test.go
