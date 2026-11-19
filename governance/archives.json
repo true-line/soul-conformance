@@ -24,6 +24,18 @@
       "url": "https://codeload.github.com/true-line/agent-bot-hq/tar.gz/f3c39d2a703085c14bc09f8f0042d048f30525dc",
       "archiveBytes": 276341,
       "sha256": "8f7c6ee4c0de4cd59d3bd935b4ed5f4a430e69bec346c2d5a04e1463ae504b54"
+    },
+    "members-machine": {
+      "commit": "160076c76ecc1286179f0d8dbf9426d5ff77eab8",
+      "url": "https://codeload.github.com/true-line/agent-bot-machine/tar.gz/160076c76ecc1286179f0d8dbf9426d5ff77eab8",
+      "archiveBytes": 1395118,
+      "sha256": "9b0e496c7863fd93ca5d29eb9c6363bb39551c1d2b82bca94a234a9d6f5dd27b"
+    },
+    "members-hq": {
+      "commit": "80fbcb1cfcbf4eaa8d642bbfc9e2d095a68b031f",
+      "url": "https://codeload.github.com/true-line/agent-bot-hq/tar.gz/80fbcb1cfcbf4eaa8d642bbfc9e2d095a68b031f",
+      "archiveBytes": 343969,
+      "sha256": "cb59652db7c3acbd7a0fcbbfe9ae1839d63e6bbf63536bfb8a717506136f4a85"
     }
   }
 }
