@@ -1,0 +1,51 @@
+name: macOS paired HQ service recovery
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  interop:
+    runs-on: macos-15
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Read the reviewed component revisions
+        id: pins
+        shell: bash
+        run: |
+          for component in machine hq identity; do
+            sha="$(jq -er --arg name "$component" '.[$name] | select(type == "string" and test("^[0-9a-f]{40}$"))' governance/paired-hq-recovery.json)"
+            printf '%s=%s\n' "$component" "$sha" >> "$GITHUB_OUTPUT"
+          done
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: true-line/agent-bot-machine
+          ref: ${{ steps.pins.outputs.machine }}
+          path: subjects/machine
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: true-line/agent-bot-hq
+          ref: ${{ steps.pins.outputs.hq }}
+          path: subjects/hq
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: true-line/agent-bot-identity
+          ref: ${{ steps.pins.outputs.identity }}
+          path: subjects/identity
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e
+        with:
+          go-version-file: subjects/machine/go.mod
+          cache: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '22'
+      - name: Verify the signed recovery handoff and recorded approval
+        run: python3 suites/paired-hq-recovery/run.py subjects
