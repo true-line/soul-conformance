@@ -16,11 +16,18 @@ export FIRST_HQ_IDENTITY="$identity" FIRST_HQ_PREVIEW="$src/preview.mjs" FIRST_H
 owner="$identity/owner-presence-macos"
 xcrun --sdk macosx swiftc -target arm64-apple-macosx15.0 -swift-version 5 -parse-as-library \
     "$owner/PairingChallenge.swift" "$owner/FirstHQChallenge.swift" "$src/owner-fixture.swift" -o "$FIRST_HQ_NATIVE"
-python3 - "$machine" "$src" "$work/overlay.json" <<'PY'
-import json, os, sys
-machine, suite, out = sys.argv[1:]
+python3 - "$machine" "$src" "$work" <<'PY'
+import json, subprocess, sys
+from pathlib import Path
+
+machine, suite, work = map(Path, sys.argv[1:])
+module = json.loads(subprocess.check_output(['go', 'mod', 'edit', '-json'], cwd=machine))['Module']['Path']
 name = 'first_hq_interop_test.go'
-with open(out, 'w') as f:
-    json.dump({'Replace': {os.path.join(machine, 'internal', 'daemon', name): os.path.join(suite, name)}}, f)
+source = (suite / name).read_text()
+for package in ('internal/cli', 'internal/members'):
+    source = source.replace(f'"MACHINE_MODULE/{package}"', json.dumps(f'{module}/{package}'))
+(work / name).write_text(source)
+with (work / 'overlay.json').open('w') as f:
+    json.dump({'Replace': {str(machine / 'internal/daemon' / name): str(work / name)}}, f)
 PY
 (cd "$machine" && go test -overlay "$work/overlay.json" -count=1 -run '^TestFirstHQCrossRepositoryApproval$' -v ./internal/daemon)

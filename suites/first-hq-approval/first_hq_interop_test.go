@@ -12,8 +12,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/qwts/managed-machine/internal/cli"
-	"github.com/qwts/managed-machine/internal/members"
+	"MACHINE_MODULE/internal/cli"
+	"MACHINE_MODULE/internal/members"
 )
 
 // The Machine component fixture supplies only the host, clock and temporary
