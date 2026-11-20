@@ -24,6 +24,18 @@
       "url": "https://codeload.github.com/true-line/agent-bot-hq/tar.gz/f3c39d2a703085c14bc09f8f0042d048f30525dc",
       "archiveBytes": 276341,
       "sha256": "8f7c6ee4c0de4cd59d3bd935b4ed5f4a430e69bec346c2d5a04e1463ae504b54"
+    },
+    "hq-t21": {
+      "commit": "3d28317ac298a519740ed7c02e062a750c4ab3ad",
+      "url": "https://codeload.github.com/true-line/agent-bot-hq/tar.gz/3d28317ac298a519740ed7c02e062a750c4ab3ad",
+      "archiveBytes": 340901,
+      "sha256": "70cb7b3e33a1a3140334820dee7a0c2ae7b969a307cbef5ba17d20582f9b3727"
+    },
+    "contracts-t21": {
+      "commit": "b96239cc47571237f7064ddbcbd0edec8e365c6b",
+      "url": "https://codeload.github.com/true-line/soul-contracts/tar.gz/b96239cc47571237f7064ddbcbd0edec8e365c6b",
+      "archiveBytes": 58680,
+      "sha256": "69a92559c0ece22c7d145b91b4a28c4f817cc6e21a06687992228c8f53294e5e"
     }
   }
 }

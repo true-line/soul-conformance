@@ -1,17 +1,18 @@
 """Verify a public immutable archive and every extracted file before execution."""
-import hashlib, json, os, sys, tarfile
+import hashlib, io, json, re, sys, tarfile
 from pathlib import Path, PurePosixPath
 from urllib.request import Request, urlopen
 ROOT = Path(__file__).resolve().parent.parent
 PINS = json.loads((ROOT / 'governance/archives.json').read_text())['archives']
 
+def no_links(path):
+    for part in [path, *path.parents]:
+        if part.is_symlink(): raise ValueError('symlink in dependency path')
+
 def prepare(name, cache, verify_only=False):
     pin = PINS[name]
     archive = cache / 'archives' / (name + '-' + pin['commit'] + '.tar.gz')
     destination = cache / 'verified' / (name + '-' + pin['commit'])
-    def no_links(path):
-        for part in [path, *path.parents]:
-            if part.is_symlink(): raise ValueError('symlink in dependency path')
     no_links(archive); no_links(destination)
     if not archive.exists():
         if verify_only: raise ValueError('missing archive: ' + name)
@@ -24,16 +25,20 @@ def prepare(name, cache, verify_only=False):
     data = archive.read_bytes()
     if len(data) != pin['archiveBytes'] or hashlib.sha256(data).hexdigest() != pin['sha256']:
         raise ValueError('archive digest mismatch: ' + name)
+    return extract_verified(data, destination, name, verify_only)
+
+def extract_verified(data, destination, name, verify_only=False, mode='r:*', expected_root=None):
     # A reused extraction is verification-only: never silently repair missing files.
     existing = destination.exists()
     if verify_only and not existing: raise ValueError('missing extracted dependency')
     expected = set()
     roots = set()
-    with tarfile.open(archive) as source:
+    with tarfile.open(fileobj=io.BytesIO(data), mode=mode) as source:
         for member in source:
             path = PurePosixPath(member.name)
             if path.is_absolute() or '..' in path.parts or not (member.isfile() or member.isdir()):
                 raise ValueError('unsafe archive member')
+            if expected_root and path.parts[0] != expected_root: raise ValueError('unexpected Darwin HQ archive root')
             roots.add(path.parts[0])
             if len(roots) != 1: raise ValueError('multiple archive roots')
             rel = Path(*path.parts[1:]); target = destination / rel
@@ -58,4 +63,13 @@ def prepare(name, cache, verify_only=False):
     return destination
 
 if __name__ == '__main__':
-    print(prepare(sys.argv[1], Path(sys.argv[2]).absolute(), '--verify' in sys.argv))
+    if sys.argv[1] == '--darwin-hq-tar':
+        archive, digest, destination = Path(sys.argv[2]), sys.argv[3], Path(sys.argv[4])
+        no_links(archive.absolute()); no_links(destination.absolute())
+        with archive.open('rb') as stream:
+            data = stream.read(64 * 1024 * 1024 + 1)
+        if len(data) > 64 * 1024 * 1024 or not re.fullmatch('[0-9a-f]{64}', digest) or hashlib.sha256(data).hexdigest() != digest:
+            raise ValueError('local archive digest or size mismatch')
+        print(extract_verified(data, destination, 'local Darwin HQ', mode='r:', expected_root='hq'))
+    else:
+        print(prepare(sys.argv[1], Path(sys.argv[2]).absolute(), '--verify' in sys.argv))
