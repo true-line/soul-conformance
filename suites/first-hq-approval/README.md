@@ -11,7 +11,9 @@ The **macOS first-HQ approval** Actions workflow runs the same command on a
 disposable runner for pull requests and pushes to main. The two subject
 commits are pinned in [the fixture manifest](../../governance/first-hq-subjects.json).
 
-Machine plans the first HQ account and exports its saved plan and challenge.
+The pinned Identity checks cover the account-only review and both versions of
+the service plan, including the v2 runtime directory displayed to the owner.
+Machine then plans the first HQ account and exports its saved plan and challenge.
 Identity's daily-account loopback interface opens the transferred file, claims
 the one-time session and presents the recomputed plan for approval. The flat
 owner CLI’s parser and first-HQ request form the signed bytes. An ephemeral CryptoKit software key signs

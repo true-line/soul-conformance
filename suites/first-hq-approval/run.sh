@@ -9,6 +9,7 @@ fi
 src=$(cd "$(dirname "$0")" && pwd -P)
 machine=$(cd "$1" && pwd -P)
 identity=$(cd "$2" && pwd -P)
+node --test "$identity/tests/machine-first-hq.test.mjs"
 work=$(mktemp -d)
 trap 'rm -rf "$work"' EXIT
 export FIRST_HQ_IDENTITY="$identity" FIRST_HQ_PREVIEW="$src/preview.mjs" FIRST_HQ_NATIVE="$work/owner-fixture"
