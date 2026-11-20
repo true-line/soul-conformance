@@ -43,10 +43,11 @@ async function checkReceipts(t, hq, contracts, bundledBroker = false) {
   const handles = new Set();
   const bindings = new Set();
   const first = await subject.open({ stateHome });
-  let admission;
+  let admission, taskId;
   try {
     t.diagnostic(await assertProtectedPreference(first, protectedRequest));
-    admission = await assertReceipts(first, hello);
+    ({ admission, taskId } = await assertReceipts(first, hello));
+    assertBinds(first, admission, hello.soul_id, bundledBroker, 2);
     await assertEquipment(first, admission, handles, bindings);
   } finally { await first.close(); }
 
@@ -60,8 +61,43 @@ async function checkReceipts(t, hq, contracts, bundledBroker = false) {
     assert.equal(reply.result.installation_epoch, admission.installation_epoch);
     assert.equal(reply.result.lease_generation, admission.lease_generation + 1);
     await assertEquipment(restarted, reply.result, handles, bindings);
+    for (const runtime of reply.result.admitted_runtimes) {
+      const member = await restarted.member(runtime);
+      const view = await member.request('task.get', { task_id: taskId });
+      assert.equal(view.ok, true);
+      assert.equal(view.result.task.task_id, taskId);
+      assert.equal(view.result.task.accountable_soul, hello.soul_id);
+      assert.equal(view.result.task.status, 'accepted');
+    }
+    assertBinds(restarted, reply.result, hello.soul_id, bundledBroker, 1);
+    t.diagnostic('Both renewed members read the original task through the broker; the persisted bind receipts identify each member and the cooperative profile.');
     t.diagnostic('Both members received distinct, runtime-bound handles before and after HQ restarted. Every Equip receipt recorded the cooperative profile.');
   } finally { await restarted.close(); }
+
+  const { receipts } = readJson(stateHome, 'store.json');
+  assert.equal(receipts.filter(row => row.kind === 'hq.stopped').length, 2);
+  for (const row of receipts) {
+    assert.equal(row.profile, profile, `HQ audit receipt ${row.seq} (${row.kind})`);
+  }
+  const audit = JSON.stringify(receipts);
+  for (const opaque of [...handles, ...bindings]) {
+    assert.ok(!audit.includes(opaque), 'public audit receipts must omit grant handles and channel bindings');
+  }
+}
+
+function assertBinds(session, admission, soulId, bundledBroker, count) {
+  const { receipts } = readJson(session.hqHome, 'store.json');
+  const proof = bundledBroker ? 'hmac-sha256' : 'channel-binding';
+  for (const runtime of admission.admitted_runtimes) {
+    const rows = receipts.filter(row => row.kind === 'hq.bind' && row.runtime_id === runtime.runtime_id);
+    assert.equal(rows.length, count, 'each successful connection must have one audited bind');
+    for (const row of rows) {
+      assert.equal(row.soul_id, soulId);
+      assert.equal(row.member_id, runtime.member_id);
+      assert.equal(row.profile, session.profile);
+      assert.equal(row.proof, proof);
+    }
+  }
 }
 
 async function assertEquipment(session, admission, handles, bindings) {
@@ -79,6 +115,7 @@ async function assertEquipment(session, admission, handles, bindings) {
     assert.equal(grant.member_id, runtime.member_id);
     assert.ok(typeof runtime.channel_binding === 'string' && runtime.channel_binding.length > 0);
     assert.ok(grant.channel_binding === runtime.channel_binding, 'wrong member channel');
+    assert.ok(!bindings.has(runtime.channel_binding), 'each admitted runtime needs its own channel binding');
     bindings.add(runtime.channel_binding);
     assert.ok(typeof grant.handle === 'string' && grant.handle.length >= 16);
     assert.ok(!handles.has(grant.handle), 'each admitted runtime needs its own opaque handle');
@@ -92,14 +129,6 @@ async function assertEquipment(session, admission, handles, bindings) {
     const rows = receipts.filter(row => row.kind === 'hq.equip' && row.runtime_id === runtime.runtime_id);
     assert.deepEqual(rows.map(row => [row.credential_references, row.profile]),
       [[0, session.profile], [0, session.profile]]);
-  }
-  // Include lifecycle and admission receipts written by the restarted HQ.
-  for (const row of receipts) {
-    assert.equal(row.profile, session.profile, `HQ audit receipt ${row.seq} (${row.kind})`);
-  }
-  const audit = JSON.stringify(receipts);
-  for (const opaque of [...handles, ...bindings]) {
-    assert.ok(!audit.includes(opaque), 'public audit receipts must omit grant handles and channel bindings');
   }
 }
 
@@ -205,5 +234,5 @@ async function assertReceipts(session, hello) {
     assert.deepEqual(rows.map((r) => [r.receipt_id, r.profile, r.by, r.outcome]),
       [[member.receipt_id, profile, member.by, member.outcome]]);
   }
-  return admission.result;
+  return { admission: admission.result, taskId: offer.result.task_id };
 }

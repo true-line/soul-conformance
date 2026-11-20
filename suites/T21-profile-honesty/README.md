@@ -18,9 +18,13 @@ admission socket. Each receives its own stable grant handle and channel binding.
 This fixture provisions no credential references or approved destinations. The
 suite restarts HQ on the same store, re-admits the Soul and equips both members
 under the new lease generation. It checks the returned grants and persisted
-cooperative Equip receipts without recording the handles or bindings. This
-exercises ordinary grant delivery. Cross-account containment and egress
-enforcement require their own host evidence.
+cooperative Equip receipts without recording the handles or bindings. Both
+renewed members then bind to the broker and read their Soul's original task.
+Each successful connection before and after restart must have one cooperative
+bind receipt identifying its runtime, member, Soul and proof method. The Darwin
+archive exercises the production broker's keyed challenge on each new connection.
+The final audit covers both shutdown receipts. Cross-account containment and
+egress enforcement require their own host evidence.
 
 On macOS the same test can also exercise an approved Darwin interim archive.
 Supply the archive's independently known SHA-256 and HQ source commit. The
