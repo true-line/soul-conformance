@@ -8,10 +8,10 @@ import { readJson } from '../lib/fixtures.mjs';
 import { ARCHIVES_PIN, CACHE, prepareContracts, prepareSubject, verifyContracts } from '../lib/pins.mjs';
 import { stage1Subject } from '../lib/stage1-subject.mjs';
 
-test('Cooperative admission, owner offer and brokered member receipts agree with the recorded profile', async () => {
+test('Cooperative admission, owner offer and brokered member receipts agree with the recorded profile', async (t) => {
   const hq = prepareSubject('hq', ARCHIVES_PIN['hq-t21'], 'hq-t21');
   const contracts = prepareContracts(readJson(hq, 'governance/soul-contracts.json'), 'contracts-t21');
-  await checkReceipts(hq, contracts);
+  t.diagnostic(await checkReceipts(hq, contracts));
 });
 
 const { SOUL_T21_HQ_TAR: archive, SOUL_T21_HQ_SHA256: sha256, SOUL_T21_HQ_COMMIT: commit } = process.env;
@@ -29,18 +29,59 @@ test('Darwin archive serves cooperative T21 receipts through its release-pinned 
     assert.equal(metadata.target_platform, 'darwin');
     const contracts = join(hq, 'vendor/soul-contracts');
     verifyContracts(contracts, readJson(hq, 'governance/soul-contracts.json'));
-    await checkReceipts(hq, contracts, true);
+    t.diagnostic(await checkReceipts(hq, contracts, true));
   });
 
 async function checkReceipts(hq, contracts, bundledBroker = false) {
   const fixture = readJson(contracts, 'fixtures/positive/hello.first-start.json').input;
   const profile = 'managed-cooperative';
-  const hello = { ...fixture, requested_profile: profile };
+  const protectedRequest = readJson(contracts, 'fixtures/negative/hello.unsupported-profile.json');
+  const hello = { ...fixture, request_id: 'req_t21_coop', requested_profile: profile };
   const subject = await stage1Subject(hq, contracts, hello, { notices: true, bundledBroker });
   const session = await subject.open();
   try {
+    const admissionOutcome = await assertProtectedPreference(session, protectedRequest);
     await assertReceipts(session, hello);
+    return admissionOutcome;
   } finally { await session.close(); }
+}
+
+// A Hello expresses a preference. The contract permits a typed refusal or a
+// visibly weaker admission. A required protected credential has a stricter rule.
+async function assertProtectedPreference(session, fixture) {
+  const request = fixture.input;
+  assert.equal(session.profile, 'managed-cooperative');
+  assert.equal(request.requested_profile, 'managed-protected');
+  const reply = await session.hello(request);
+  if (reply.ok) {
+    assert.equal(reply.result.profile, session.profile);
+    assert.equal(reply.result.request_id, request.request_id);
+    const disclosed = reply.result.warnings?.some(warning =>
+      warning.includes(request.requested_profile) && warning.includes(session.profile));
+    assert.ok(disclosed, 'HQ must disclose the requested profile and the weaker profile in force');
+    const repeated = await session.hello(request);
+    assert.equal(repeated.ok, true);
+    assert.deepEqual(repeated.result, reply.result);
+  } else {
+    assert.equal(reply.refusal?.error, fixture.expect.error);
+    assert.equal(reply.refusal.request_id, request.request_id);
+  }
+
+  const { receipts } = readJson(session.hqHome, 'store.json');
+  const decisions = receipts.filter(row => row.request_id === request.request_id &&
+    ['hq.admission', 'hq.hello.refused'].includes(row.kind));
+  assert.equal(decisions.length, 1);
+  const [record] = decisions;
+  assert.equal(record.profile, session.profile);
+  if (reply.ok) {
+    assert.equal(record.kind, 'hq.admission');
+    assert.equal(record.decision_id, reply.result.decision_id);
+    assert.equal(record.profile_in_force, session.profile);
+    return 'Protected preference produced an explicit cooperative admission on both replies and one cooperative receipt.';
+  }
+  assert.equal(record.kind, 'hq.hello.refused');
+  assert.equal(record.code, fixture.expect.error);
+  return 'Protected preference was refused with profile_insufficient and recorded under the cooperative profile.';
 }
 
 async function assertReceipts(session, hello) {
