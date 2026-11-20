@@ -1,6 +1,18 @@
 {
   "schema_version": 1,
   "archives": {
+    "members-machine": {
+      "commit": "53f448e8c7967ad90cee30dc72738a495fcd0e60",
+      "url": "https://codeload.github.com/true-line/agent-bot-machine/tar.gz/53f448e8c7967ad90cee30dc72738a495fcd0e60",
+      "archiveBytes": 1576540,
+      "sha256": "4e646ab860a0681dc93f8cba74581a35e5d71a505bd633d9650425b2ee89ab2f"
+    },
+    "members-hq": {
+      "commit": "643bd59e345d5ac81a577a7eb9de1b601774f93a",
+      "url": "https://codeload.github.com/true-line/agent-bot-hq/tar.gz/643bd59e345d5ac81a577a7eb9de1b601774f93a",
+      "archiveBytes": 394682,
+      "sha256": "47f53e61bdb6950f4384d0bad605517605a5ded93b064a64fb47a2f27a3338e7"
+    },
     "contracts": {
       "commit": "d9ca0731fbe7bbf7a29d066c8a23cd92717ee9bd",
       "url": "https://codeload.github.com/true-line/soul-contracts/tar.gz/d9ca0731fbe7bbf7a29d066c8a23cd92717ee9bd",
