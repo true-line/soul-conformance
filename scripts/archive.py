@@ -1,5 +1,5 @@
 """Verify a public immutable archive and every extracted file before execution."""
-import hashlib, io, json, os, re, sys, tarfile
+import hashlib, io, json, re, sys, tarfile
 from pathlib import Path, PurePosixPath
 from urllib.request import Request, urlopen
 ROOT = Path(__file__).resolve().parent.parent
