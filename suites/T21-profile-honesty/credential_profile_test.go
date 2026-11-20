@@ -79,6 +79,14 @@ func TestCooperativeCredentialProfile(t *testing.T) {
 			if !ok || id == "" || issued.Body["operation_id"] != op || issued.Body["profile"] != "managed cooperative" {
 				t.Fatal("expected a cooperative issuance")
 			}
+			// A caller can retry the same operation after losing its first response.
+			// The new request has its own signature and receives the original issuance.
+			retry := tc.issue(op, "managed cooperative")
+			check(t, retry, http.StatusOK)
+			if retry.JTI == issued.JTI || retry.Body["replayed"] != true || retry.Body["issuance_id"] != id ||
+				retry.Body["operation_id"] != op || retry.Body["profile"] != "managed cooperative" {
+				t.Fatal("retry must return the original cooperative issuance bound to the new request")
+			}
 			record := daemon.Call("GET", "/api/daemon/issuances?id="+id, nil)
 			check(t, record, http.StatusOK)
 			if record.Body["operation_id"] != op || record.Body["profile"] != "managed cooperative" {
