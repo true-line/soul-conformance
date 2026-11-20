@@ -11,7 +11,7 @@ import { stage1Subject } from '../lib/stage1-subject.mjs';
 test('Cooperative admission, owner offer and brokered member receipts agree with the recorded profile', async (t) => {
   const hq = prepareSubject('hq', ARCHIVES_PIN['hq-t21'], 'hq-t21');
   const contracts = prepareContracts(readJson(hq, 'governance/soul-contracts.json'), 'contracts-t21');
-  t.diagnostic(await checkReceipts(hq, contracts));
+  await checkReceipts(t, hq, contracts);
 });
 
 const { SOUL_T21_HQ_TAR: archive, SOUL_T21_HQ_SHA256: sha256, SOUL_T21_HQ_COMMIT: commit } = process.env;
@@ -29,21 +29,78 @@ test('Darwin archive serves cooperative T21 receipts through its release-pinned 
     assert.equal(metadata.target_platform, 'darwin');
     const contracts = join(hq, 'vendor/soul-contracts');
     verifyContracts(contracts, readJson(hq, 'governance/soul-contracts.json'));
-    t.diagnostic(await checkReceipts(hq, contracts, true));
+    await checkReceipts(t, hq, contracts, true);
   });
 
-async function checkReceipts(hq, contracts, bundledBroker = false) {
+async function checkReceipts(t, hq, contracts, bundledBroker = false) {
   const fixture = readJson(contracts, 'fixtures/positive/hello.first-start.json').input;
   const profile = 'managed-cooperative';
   const protectedRequest = readJson(contracts, 'fixtures/negative/hello.unsupported-profile.json');
   const hello = { ...fixture, request_id: 'req_t21_coop', requested_profile: profile };
   const subject = await stage1Subject(hq, contracts, hello, { notices: true, bundledBroker });
-  const session = await subject.open();
+  const stateHome = mkdtempSync(join(CACHE, 'equip-'));
+  t.after(() => rmSync(stateHome, { recursive: true, force: true }));
+  const handles = new Set();
+  const bindings = new Set();
+  const first = await subject.open({ stateHome });
+  let admission;
   try {
-    const admissionOutcome = await assertProtectedPreference(session, protectedRequest);
-    await assertReceipts(session, hello);
-    return admissionOutcome;
-  } finally { await session.close(); }
+    t.diagnostic(await assertProtectedPreference(first, protectedRequest));
+    admission = await assertReceipts(first, hello);
+    await assertEquipment(first, admission, handles, bindings);
+  } finally { await first.close(); }
+
+  const restarted = await subject.open({ stateHome });
+  try {
+    assert.equal(restarted.profile, profile);
+    const reply = await restarted.hello({ ...hello, request_id: 'req_t21_restart',
+      prior_installation_epoch: admission.installation_epoch });
+    assert.equal(reply.ok, true);
+    assert.equal(reply.result.profile, profile);
+    assert.equal(reply.result.installation_epoch, admission.installation_epoch);
+    assert.equal(reply.result.lease_generation, admission.lease_generation + 1);
+    await assertEquipment(restarted, reply.result, handles, bindings);
+    t.diagnostic('Both members received distinct, runtime-bound handles before and after HQ restarted. Every Equip receipt recorded the cooperative profile.');
+  } finally { await restarted.close(); }
+}
+
+async function assertEquipment(session, admission, handles, bindings) {
+  const runtimes = admission.admitted_runtimes;
+  assert.deepEqual(runtimes.map(runtime => runtime.role).sort(), ['lead', 'specialist']);
+  for (const runtime of runtimes) {
+    const reply = await session.equip(runtime.runtime_id);
+    assert.equal(reply.ok, true);
+    const equipment = reply.result;
+    assert.equal(equipment.runtime_id, runtime.runtime_id);
+    assert.deepEqual(equipment.credential_references, []);
+    assert.deepEqual(equipment.approved_destinations, []);
+    assert.equal(equipment.grant_handles.length, 1);
+    const [grant] = equipment.grant_handles;
+    assert.equal(grant.member_id, runtime.member_id);
+    assert.ok(typeof runtime.channel_binding === 'string' && runtime.channel_binding.length > 0);
+    assert.ok(grant.channel_binding === runtime.channel_binding, 'wrong member channel');
+    bindings.add(runtime.channel_binding);
+    assert.ok(typeof grant.handle === 'string' && grant.handle.length >= 16);
+    assert.ok(!handles.has(grant.handle), 'each admitted runtime needs its own opaque handle');
+    handles.add(grant.handle);
+    const repeat = await session.equip(runtime.runtime_id);
+    assert.equal(repeat.ok, true);
+    assert.ok(repeat.result.grant_handles[0]?.handle === grant.handle, 'repeated Equip must retain the runtime handle');
+  }
+  const { receipts } = readJson(session.hqHome, 'store.json');
+  for (const runtime of runtimes) {
+    const rows = receipts.filter(row => row.kind === 'hq.equip' && row.runtime_id === runtime.runtime_id);
+    assert.deepEqual(rows.map(row => [row.credential_references, row.profile]),
+      [[0, session.profile], [0, session.profile]]);
+  }
+  // Include lifecycle and admission receipts written by the restarted HQ.
+  for (const row of receipts) {
+    assert.equal(row.profile, session.profile, `HQ audit receipt ${row.seq} (${row.kind})`);
+  }
+  const audit = JSON.stringify(receipts);
+  for (const opaque of [...handles, ...bindings]) {
+    assert.ok(!audit.includes(opaque), 'public audit receipts must omit grant handles and channel bindings');
+  }
 }
 
 // A Hello expresses a preference. The contract permits a typed refusal or a
@@ -148,7 +205,5 @@ async function assertReceipts(session, hello) {
     assert.deepEqual(rows.map((r) => [r.receipt_id, r.profile, r.by, r.outcome]),
       [[member.receipt_id, profile, member.by, member.outcome]]);
   }
-  for (const receipt of receipts) {
-    assert.equal(receipt.profile, profile, `HQ audit receipt ${receipt.seq} (${receipt.kind})`);
-  }
+  return admission.result;
 }

@@ -13,6 +13,15 @@ checks the persisted decision in both cases and replays a granted admission to
 verify that its warning and cooperative profile survive redelivery. The
 credential test below separately exercises a mandatory protected claim.
 
+The Soul entry point also equips the admitted lead and specialist over its
+admission socket. Each receives its own stable grant handle and channel binding.
+This fixture provisions no credential references or approved destinations. The
+suite restarts HQ on the same store, re-admits the Soul and equips both members
+under the new lease generation. It checks the returned grants and persisted
+cooperative Equip receipts without recording the handles or bindings. This
+exercises ordinary grant delivery. Cross-account containment and egress
+enforcement require their own host evidence.
+
 On macOS the same test can also exercise an approved Darwin interim archive.
 Supply the archive's independently known SHA-256 and HQ source commit. The
 fixture verifies the archive before importing its HQ modules, loads the
