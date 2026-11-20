@@ -14,6 +14,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -164,10 +165,14 @@ func TestPairedMembersInterop(t *testing.T) {
 		t.Fatal(err)
 	}
 	gate := Gate{Pairing: Pairing{Live: hq, AgentDaemon: hq, AgentDaemonBound: true, AgentDaemonUID: roleUID, OwnerPresenceRequired: true}}
+	var useRealPeer atomic.Bool
 	fixturePeer := func(conn net.Conn) (int, error) {
 		uid, err := peerCred(conn)
 		if err != nil || uid != os.Getuid() {
 			return -1, fmt.Errorf("unexpected fixture peer")
+		}
+		if useRealPeer.Load() {
+			return uid, nil
 		}
 		return roleUID, nil
 	}
@@ -186,6 +191,8 @@ func TestPairedMembersInterop(t *testing.T) {
 		}
 	}()
 	client(socket, hex.EncodeToString(pub), expectedFile)
+	useRealPeer.Store(true)
+	client(socket, hex.EncodeToString(pub), expectedFile, "non-role")
 	entries, err := os.ReadDir(dir)
 	if err != nil || len(entries) != len(ids) {
 		t.Fatal("saved plan directory changed")
