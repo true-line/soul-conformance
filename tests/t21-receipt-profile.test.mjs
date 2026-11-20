@@ -8,7 +8,7 @@ import { readJson } from '../lib/fixtures.mjs';
 import { ARCHIVES_PIN, CACHE, prepareContracts, prepareSubject, verifyContracts } from '../lib/pins.mjs';
 import { stage1Subject } from '../lib/stage1-subject.mjs';
 
-test('Cooperative admission, owner task offer and replay agree with the recorded profile', async () => {
+test('Cooperative admission, owner offer and brokered member receipts agree with the recorded profile', async () => {
   const hq = prepareSubject('hq', ARCHIVES_PIN['hq-t21'], 'hq-t21');
   const contracts = prepareContracts(readJson(hq, 'governance/soul-contracts.json'), 'contracts-t21');
   await checkReceipts(hq, contracts);
@@ -39,17 +39,16 @@ async function checkReceipts(hq, contracts, bundledBroker = false) {
   const subject = await stage1Subject(hq, contracts, hello, { notices: true, bundledBroker });
   const session = await subject.open();
   try {
-    await assertReceipts(session, hello, bundledBroker);
+    await assertReceipts(session, hello);
   } finally { await session.close(); }
 }
 
-async function assertReceipts(session, hello, bundledBroker) {
+async function assertReceipts(session, hello) {
   const profile = hello.requested_profile;
   assert.equal(session.profile, profile);
   const admission = await session.hello(hello);
   assert.equal(admission.ok, true);
   assert.equal(admission.result.profile, profile);
-  if (bundledBroker) await session.member(admission.result.admitted_runtimes[0]);
   const offerInput = {
     operation_id: 'op_t21_offer',
     objective: 'Check the profile recorded for an owner task offer.',
@@ -65,11 +64,49 @@ async function assertReceipts(session, hello, bundledBroker) {
   assert.equal(replay.ok, true);
   assert.deepEqual(replay.result, offer.result);
 
-  const receipts = session.receipts();
+  // Both member roles get a task receipt over their own bound broker connection.
+  // Redelivery after a fresh bind must return the original cooperative receipt.
+  let revision = offer.result.revision;
+  const memberReceipts = [];
+  for (const [role, transition, outcome] of [
+    ['lead', 'accepted', 'committed'], ['specialist', 'completed', 'proposal'],
+  ]) {
+    const runtime = admission.result.admitted_runtimes.find((r) => r.role === role);
+    assert.ok(runtime, `missing admitted ${role}`);
+    const request = {
+      contract: 'task/v1', request_id: `req_t21_${role}`, operation_id: `op_t21_${role}`,
+      installation_epoch: admission.result.installation_epoch, lease_generation: admission.result.lease_generation,
+      task_id: offer.result.task_id, runtime_id: runtime.runtime_id, expected_revision: revision, transition,
+      ...(role === 'specialist' ? { result_ref: 'artifact_t21' } : {}),
+    };
+    const member = await session.member(runtime);
+    const reply = await member.request('task.commit', request);
+    assert.equal(reply.ok, true);
+    const receipt = reply.result;
+    assert.ok(receipt.receipt_id);
+    assert.equal(receipt.profile, profile);
+    assert.equal(receipt.task_id, request.task_id);
+    assert.equal(receipt.operation_id, request.operation_id);
+    assert.equal(receipt.by, runtime.member_id);
+    assert.equal(receipt.outcome, outcome);
+    const secondConnection = await session.member(runtime);
+    const repeated = await secondConnection.request('task.commit', request);
+    assert.equal(repeated.ok, true);
+    assert.deepEqual(repeated.result, receipt);
+    memberReceipts.push(receipt);
+    revision = receipt.revision;
+  }
+
+  const { receipts } = readJson(session.hqHome, 'store.json');
   const admitted = receipts.find((r) => r.kind === 'hq.admission' && r.request_id === hello.request_id);
   assert.equal(admitted?.profile_in_force, profile);
   const offers = receipts.filter((r) => r.kind === 'task.offer' && r.operation_id === offerInput.operation_id);
   assert.deepEqual(offers.map((r) => [r.receipt_id, r.profile]), [[offer.result.receipt_id, profile]]);
+  for (const member of memberReceipts) {
+    const rows = receipts.filter((r) => r.kind === 'task.commit' && r.operation_id === member.operation_id);
+    assert.deepEqual(rows.map((r) => [r.receipt_id, r.profile, r.by, r.outcome]),
+      [[member.receipt_id, profile, member.by, member.outcome]]);
+  }
   for (const receipt of receipts) {
     assert.equal(receipt.profile, profile, `HQ audit receipt ${receipt.seq} (${receipt.kind})`);
   }
