@@ -13,8 +13,8 @@ commits are pinned in [the fixture manifest](../../governance/first-hq-subjects.
 
 Machine plans the first HQ account and exports its saved plan and challenge.
 Identity's daily-account loopback interface opens the transferred file, claims
-the one-time session and presents the recomputed plan for approval. The native owner
-parser forms the signed bytes and an ephemeral CryptoKit software key signs
+the one-time session and presents the recomputed plan for approval. The flat
+owner CLI’s parser and first-HQ request form the signed bytes. An ephemeral CryptoKit software key signs
 them. Identity verifies the proof and Machine consumes it. The test checks
 the resulting approval and the receipt from the human apply command against
 the reviewed digest. It also exercises replay, cancellation and expiry.
