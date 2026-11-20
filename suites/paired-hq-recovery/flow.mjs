@@ -17,8 +17,10 @@ const transfer = join(work, 'challenge.json');
 const proof = join(work, 'proof.json');
 async function exportChallenge() {
   const line = await run('hq-service-recovery', 'export', planID, '--socket', socket);
-  assert.equal(JSON.parse(line).body.plan_digest, planDigest);
+  const { body } = JSON.parse(line);
+  assert.equal(body.plan_digest, planDigest);
   writeFileSync(transfer, line, { mode: 0o600 });
+  return body.nonce;
 }
 const review = (decision) => execFileSync('python3', [
   join(suite, 'terminal.py'), process.execPath, join(suite, 'review.mjs'),
@@ -26,13 +28,13 @@ const review = (decision) => execFileSync('python3', [
 ], { timeout: 25_000 });
 const submit = () => run('hq-service-recovery', 'approve', '--challenge-file', transfer, '--proof-file', proof, '--socket', socket);
 
-await exportChallenge();
+const discardedNonce = await exportChallenge();
 assert.equal(review('discard').length, 0);
 assert.equal(existsSync(approvalPath), false);
 assert.equal((await run('hq-service-recovery', 'cancel', '--challenge-file', transfer, '--socket', socket)).state, 'cancelled');
 assert.equal(existsSync(approvalPath), false);
 
-await exportChallenge();
+assert.notEqual(await exportChallenge(), discardedNonce);
 writeFileSync(proof, review('approve'), { mode: 0o600 });
 const approved = await submit();
 assert.equal(approved.state, 'approved');

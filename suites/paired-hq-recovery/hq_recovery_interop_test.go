@@ -19,6 +19,16 @@ import (
 )
 
 func TestPairedHQRecoveryInterop(t *testing.T) {
+	for _, tc := range []struct{ name, path string }{
+		{"legacy-v1", filepath.Join(os.Getenv("RECOVERY_SUITE"), "plan.json")},
+		{"v2-create", filepath.Join(os.Getenv("RECOVERY_PLANS"), "v2-create.json")},
+		{"v2-reuse", filepath.Join(os.Getenv("RECOVERY_PLANS"), "v2-reuse.json")},
+	} {
+		t.Run(tc.name, func(t *testing.T) { runPairedHQRepair(t, tc.path) })
+	}
+}
+
+func runPairedHQRepair(t *testing.T, planPath string) {
 	f := newRecoveryFixture(t)
 	// Darwin bounds the length of a Unix socket name.
 	work, err := os.MkdirTemp("/private/tmp", "hq-recovery-")
@@ -43,7 +53,7 @@ func TestPairedHQRecoveryInterop(t *testing.T) {
 
 	const planID = "plan-20261119T020000Z-abcd"
 	suite := os.Getenv("RECOVERY_SUITE")
-	fixture, err := os.ReadFile(filepath.Join(suite, "plan.json"))
+	fixture, err := os.ReadFile(planPath)
 	if err != nil {
 		t.Fatal(err)
 	}

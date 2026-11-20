@@ -26,10 +26,18 @@ with TemporaryDirectory(prefix='hq-recovery-') as tmp:
     subprocess.run(['xcrun', '--sdk', 'macosx', 'swiftc', '-swift-version', '5', '-parse-as-library',
                     owner / 'PairingChallenge.swift', owner / 'FirstHQChallenge.swift', suite / 'owner.swift',
                     '-o', signer], check=True)
-    name = 'hq_recovery_interop_test.go'
+    overlays = {
+        'members': 'hq_recovery_plans_test.go',
+        'daemon': 'hq_recovery_interop_test.go',
+    }
     overlay = Path(tmp) / 'overlay.json'
-    overlay.write_text(json.dumps({'Replace': {str(subjects / 'machine/internal/daemon' / name): str(suite / name)}}))
-    env = {**os.environ, 'RECOVERY_SUITE': str(suite), 'RECOVERY_SUBJECTS': str(subjects), 'RECOVERY_OWNER': str(signer)}
-    subprocess.run(['go', 'test', '-race', '-count=1', '-timeout=90s', '-overlay', str(overlay),
-                    '-run', '^TestPairedHQRecoveryInterop$', '-v', './internal/daemon'],
-                   cwd=subjects / 'machine', env=env, check=True)
+    overlay.write_text(json.dumps({'Replace': {
+        str(subjects / 'machine/internal' / package / name): str(suite / name)
+        for package, name in overlays.items()
+    }}))
+    env = {**os.environ, 'RECOVERY_SUITE': str(suite), 'RECOVERY_SUBJECTS': str(subjects),
+           'RECOVERY_OWNER': str(signer), 'RECOVERY_PLANS': tmp}
+    for package, test in [('members', 'TestRenderPairedHQRepairPlans'), ('daemon', 'TestPairedHQRecoveryInterop')]:
+        subprocess.run(['go', 'test', '-race', '-count=1', '-timeout=90s', '-overlay', str(overlay),
+                        '-run', f'^{test}$', '-v', f'./internal/{package}'],
+                       cwd=subjects / 'machine', env=env, check=True)

@@ -14,9 +14,11 @@ node, review, transfer, fingerprint, seed, decision = sys.argv[1:]
 if decision not in ('discard', 'approve'):
     sys.exit('unknown test decision')
 challenge = json.loads(Path(transfer).read_text())['body']
-plan = json.loads(challenge['plan_canonical'])
-service = plan['steps'][1]
+expected_plan = json.loads(challenge['plan_canonical'])
+service = expected_plan['steps'][1]
 record = json.loads(service['content'])
+# The displayed service record omits the plist, which the reviewer prints in full below.
+service['content'] = {key: value for key, value in record.items() if key != 'plist'}
 expected = [
     'Repair the paired HQ service', 'Machine SHA-256 ' + fingerprint,
     'HQ SHA-256 ' + hashlib.sha256(bytes.fromhex(challenge['hq_key'])).hexdigest(),
@@ -51,7 +53,11 @@ try:
         if len(output) > 128 * 1024:
             sys.exit('terminal review exceeded its display bound')
         if not answered and b'Type approve' in output:
-            display = output.decode().replace('\r\n', '\n')
+            display = output.decode().replace('\r\n', '\n').split('Type approve', 1)[0]
+            start = display.index('\n{') + 1
+            end = display.index('\nLaunchDaemon plist\n', start)
+            if json.loads(display[start:end]) != expected_plan:
+                sys.exit('the displayed plan differs from the signed plan before owner consent')
             if not all(field in display for field in expected):
                 sys.exit('the terminal omitted a reviewed identity, service step, or full plist')
             os.write(master, b'approve\n' if decision == 'approve' else b'\n')
