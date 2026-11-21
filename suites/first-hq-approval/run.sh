@@ -14,8 +14,14 @@ work=$(mktemp -d)
 trap 'rm -rf "$work"' EXIT
 export FIRST_HQ_IDENTITY="$identity" FIRST_HQ_PREVIEW="$src/preview.mjs" FIRST_HQ_NATIVE="$work/owner-fixture"
 owner="$identity/owner-presence-macos"
+# Newer Identity sources share the request enum with other typed plan parsers.
+# The original pinned sources need only the pairing and first-HQ parsers.
+parsers=("$owner/PairingChallenge.swift" "$owner/FirstHQChallenge.swift")
+for name in HarnessLaunchChallenge HarnessLaunchPlan HarnessAccountPlan HQServiceRecoveryPlan; do
+    if [[ -f "$owner/$name.swift" ]]; then parsers+=("$owner/$name.swift"); fi
+done
 xcrun --sdk macosx swiftc -target arm64-apple-macosx15.0 -swift-version 5 -parse-as-library \
-    "$owner/PairingChallenge.swift" "$owner/FirstHQChallenge.swift" "$src/owner-fixture.swift" -o "$FIRST_HQ_NATIVE"
+    "${parsers[@]}" "$src/owner-fixture.swift" -o "$FIRST_HQ_NATIVE"
 python3 - "$machine" "$src" "$work" <<'PY'
 import json, subprocess, sys
 from pathlib import Path
