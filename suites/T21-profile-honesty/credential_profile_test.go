@@ -4,7 +4,9 @@ import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
+	"net"
 	"net/http"
+	"net/http/httptest"
 	"net/url"
 	"testing"
 
@@ -42,7 +44,8 @@ func TestCooperativeCredentialProfile(t *testing.T) {
 		}
 	}
 
-	for _, tc := range []struct {
+	issuedIDs := map[string]string{}
+	cases := []struct {
 		kind   string
 		status int
 		issue  func(op, profile string) e2e.Resp
@@ -59,7 +62,8 @@ func TestCooperativeCredentialProfile(t *testing.T) {
 				"agent_id": "t21-soul", "account": "t21-account", "task_id": "t21", "operation_id": op, "profile": profile,
 			})
 		}},
-	} {
+	}
+	for _, tc := range cases {
 		t.Run(tc.kind, func(t *testing.T) {
 			op := "t21-" + tc.kind
 			mints := host.GH.Mints()
@@ -79,6 +83,7 @@ func TestCooperativeCredentialProfile(t *testing.T) {
 			if !ok || id == "" || issued.Body["operation_id"] != op || issued.Body["profile"] != "managed cooperative" {
 				t.Fatal("expected a cooperative issuance")
 			}
+			issuedIDs[tc.kind] = id
 			// A caller can retry the same operation after losing its first response.
 			// The new request has its own signature and receives the original issuance.
 			retry := tc.issue(op, "managed cooperative")
@@ -96,5 +101,53 @@ func TestCooperativeCredentialProfile(t *testing.T) {
 	}
 	if host.GH.Mints() != 1 {
 		t.Fatal("expected exactly one upstream installation-token mint")
+	}
+
+	// Reconstruct the public daemon handler on the same loopback address and
+	// retained fixture store. This is a service-instance restart, not evidence
+	// of persistence across a process restart or a production datastore.
+	prior := host.Dev
+	// Keep the original port reserved. The signed requests bind to this URL.
+	file, err := host.Server.Listener.(*net.TCPListener).File()
+	if err != nil {
+		t.Fatal(err)
+	}
+	listener, err := net.FileListener(file)
+	file.Close()
+	if err != nil {
+		t.Fatal(err)
+	}
+	host.Server.Close()
+	resumed := &device.Service{
+		Apps: prior.Apps, Auth: prior.Auth, SignKey: prior.SignKey,
+		IdleDays: prior.IdleDays, HTTP: prior.HTTP, Now: prior.Now,
+		Raw: prior.Raw, Keys: prior.Keys, Global: prior.Global, Soul: prior.Soul,
+	}
+	host.Dev = resumed
+	host.Server = &httptest.Server{Listener: listener, Config: &http.Server{Handler: resumed.DaemonRoutes()}}
+	host.Server.Start()
+	t.Cleanup(host.Server.Close)
+
+	for _, tc := range cases {
+		t.Run(tc.kind+"-after-restart", func(t *testing.T) {
+			op := "t21-restart-" + tc.kind
+			mints := host.GH.Mints()
+			refusal := tc.issue(op, "managed protected")
+			check(t, refusal, http.StatusForbidden)
+			if refusal.Body["error"] != "profile_insufficient" || host.GH.Mints() != mints {
+				t.Fatal("protected claim must remain refused after restart without issuance")
+			}
+			lookup := daemon.Call("GET", "/api/daemon/issuances/"+op, nil)
+			check(t, lookup, http.StatusOK)
+			if lookup.Body["state"] != "none" || lookup.Body["issuance_id"] != nil {
+				t.Fatal("refused claim acquired an issuance after restart")
+			}
+			replay := tc.issue("t21-"+tc.kind, "managed cooperative")
+			check(t, replay, http.StatusOK)
+			if replay.Body["replayed"] != true || replay.Body["issuance_id"] != issuedIDs[tc.kind] ||
+				replay.Body["profile"] != "managed cooperative" || host.GH.Mints() != mints {
+				t.Fatal("cooperative issuance did not replay with the original profile after restart")
+			}
+		})
 	}
 }
