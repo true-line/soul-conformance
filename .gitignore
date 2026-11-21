@@ -3,3 +3,5 @@ node_modules/
 __pycache__/
 reports/T14-latest.json
 reports/stage1-latest.json
+reports/quickstart-latest.json
+reports/stage2a-linux.json

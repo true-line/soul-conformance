@@ -101,6 +101,8 @@ jobs:
           assert.equal(quickstart.outcome, 'pass');
           assert.equal(quickstart.suite_revision.clean, true);
           JS
+      - name: Run the native Linux two-account binding and restart check
+        run: bash suites/stage2a/hosted-linux.sh
       - name: Retain the exact-run report
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -110,4 +112,5 @@ jobs:
             reports/T14-latest.json
             reports/stage1-latest.json
             reports/quickstart-latest.json
+            reports/stage2a-linux.json
           if-no-files-found: error

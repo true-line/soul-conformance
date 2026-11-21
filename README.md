@@ -20,6 +20,8 @@ npm run prepare:pins && npm test && npm run t14 && npm run stage1 && npm run qui
 
 Node 20 or later, Python 3, git, and network access to the public true-line repositories; nothing else is installed. Suites that run today: T14 current-major evidence ([suites/T14-version-mismatch](suites/T14-version-mismatch/README.md)), the Stage 1 T04/T05/T20 task-authority flow, and the runnable [`hello.soul` quickstart](templates/hello.soul/README.md). Each runner accepts `--out` for a JSON report. `npm run t14` verifies implemented checks; `npm run t14:gate` additionally requires the accepted compatibility inventory at freshly fetched platform main. A green T14 evidence job can still report the policy gate blocked.
 
+The [Stage 2a host runner](suites/stage2a/README.md) measures positive caller binding on a selected host with two provisioned fixture accounts.
+
 ## Depends on
 
 `soul-contracts` (schemas, fixtures, error registry) at build time; the binaries under test (`managed-machine`, `agent-bot-identity`, `agent-comms`, `soul-adapters`) at test time only. Nothing depends on this repository.
