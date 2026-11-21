@@ -20,6 +20,9 @@ suite restarts HQ on the same store, re-admits the Soul and equips both members
 under the new lease generation. It checks the returned grants and persisted
 cooperative Equip receipts without recording the handles or bindings. Both
 renewed members then bind to the broker and read their Soul's original task.
+In each generation the entry point sends Ready and renews the lease for both
+members. The owner sees both members ready, and each runtime has one persisted
+cooperative readiness receipt. The fixture uses no credentials.
 Each successful connection before and after restart must have one cooperative
 bind receipt identifying its runtime, member, Soul and proof method. The Darwin
 archive exercises the production broker's keyed challenge on each new connection.
