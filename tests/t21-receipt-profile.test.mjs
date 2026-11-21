@@ -46,9 +46,14 @@ async function checkReceipts(t, hq, contracts, bundledBroker = false) {
   let admission, taskId;
   try {
     t.diagnostic(await assertProtectedPreference(first, protectedRequest));
-    ({ admission, taskId } = await assertReceipts(first, hello));
-    assertBinds(first, admission, hello.soul_id, bundledBroker, 2);
+    const reply = await first.hello(hello);
+    assert.equal(reply.ok, true);
+    admission = reply.result;
+    assert.equal(admission.profile, profile);
     await assertEquipment(first, admission, handles, bindings);
+    await assertReadiness(first, admission, hello);
+    taskId = await assertTaskReceipts(first, hello, admission);
+    assertBinds(first, admission, hello.soul_id, bundledBroker, 2);
   } finally { await first.close(); }
 
   const restarted = await subject.open({ stateHome });
@@ -61,6 +66,7 @@ async function checkReceipts(t, hq, contracts, bundledBroker = false) {
     assert.equal(reply.result.installation_epoch, admission.installation_epoch);
     assert.equal(reply.result.lease_generation, admission.lease_generation + 1);
     await assertEquipment(restarted, reply.result, handles, bindings);
+    await assertReadiness(restarted, reply.result, hello);
     for (const runtime of reply.result.admitted_runtimes) {
       const member = await restarted.member(runtime);
       const view = await member.request('task.get', { task_id: taskId });
@@ -70,6 +76,7 @@ async function checkReceipts(t, hq, contracts, bundledBroker = false) {
       assert.equal(view.result.task.status, 'accepted');
     }
     assertBinds(restarted, reply.result, hello.soul_id, bundledBroker, 1);
+    t.diagnostic('The owner saw both members ready in both generations. Each runtime renewed its lease and had one cooperative readiness receipt.');
     t.diagnostic('Both renewed members read the original task through the broker; the persisted bind receipts identify each member and the cooperative profile.');
     t.diagnostic('Both members received distinct, runtime-bound handles before and after HQ restarted. Every Equip receipt recorded the cooperative profile.');
   } finally { await restarted.close(); }
@@ -132,6 +139,37 @@ async function assertEquipment(session, admission, handles, bindings) {
   }
 }
 
+async function assertReadiness(session, admission, hello) {
+  for (const runtime of admission.admitted_runtimes) {
+    const request = {
+      contract: 'hq/v1', runtime_id: runtime.runtime_id, installation_epoch: admission.installation_epoch,
+      lease_generation: admission.lease_generation, renewal_sequence: 1, readiness_state: 'cold',
+      auth_state: 'unauthenticated', adapter_versions: {}, observed_health: 'healthy',
+    };
+    const ready = await session.ready(request);
+    assert.equal(ready.ok, true);
+    const lease = await session.lease({ ...request, renewal_sequence: 2 });
+    assert.equal(lease.ok, true);
+    for (const reply of [ready, lease]) {
+      assert.equal(reply.result.runtime_id, runtime.runtime_id);
+      assert.equal(reply.result.installation_epoch, admission.installation_epoch);
+      assert.equal(reply.result.lease_generation, admission.lease_generation);
+    }
+  }
+
+  const owner = await session.owner('souls.list', {});
+  assert.equal(owner.ok, true);
+  const soul = owner.result.find(row => row.soul_id === hello.soul_id);
+  assert.equal(soul?.lease_generation, admission.lease_generation);
+  const { receipts } = readJson(session.hqHome, 'store.json');
+  for (const runtime of admission.admitted_runtimes) {
+    assert.equal(soul.runtimes.find(row => row.member_id === runtime.member_id)?.ready, true);
+    const rows = receipts.filter(row => row.kind === 'hq.ready' && row.runtime_id === runtime.runtime_id);
+    assert.deepEqual(rows.map(row => [row.readiness_state, row.profile]), [['cold', 'managed-cooperative']],
+      'each ready runtime needs its own cooperative readiness receipt');
+  }
+}
+
 // A Hello expresses a preference. The contract permits a typed refusal or a
 // visibly weaker admission. A required protected credential has a stricter rule.
 async function assertProtectedPreference(session, fixture) {
@@ -170,12 +208,8 @@ async function assertProtectedPreference(session, fixture) {
   return 'Protected preference was refused with profile_insufficient and recorded under the cooperative profile.';
 }
 
-async function assertReceipts(session, hello) {
+async function assertTaskReceipts(session, hello, admission) {
   const profile = hello.requested_profile;
-  assert.equal(session.profile, profile);
-  const admission = await session.hello(hello);
-  assert.equal(admission.ok, true);
-  assert.equal(admission.result.profile, profile);
   const offerInput = {
     operation_id: 'op_t21_offer',
     objective: 'Check the profile recorded for an owner task offer.',
@@ -198,11 +232,11 @@ async function assertReceipts(session, hello) {
   for (const [role, transition, outcome] of [
     ['lead', 'accepted', 'committed'], ['specialist', 'completed', 'proposal'],
   ]) {
-    const runtime = admission.result.admitted_runtimes.find((r) => r.role === role);
+    const runtime = admission.admitted_runtimes.find((r) => r.role === role);
     assert.ok(runtime, `missing admitted ${role}`);
     const request = {
       contract: 'task/v1', request_id: `req_t21_${role}`, operation_id: `op_t21_${role}`,
-      installation_epoch: admission.result.installation_epoch, lease_generation: admission.result.lease_generation,
+      installation_epoch: admission.installation_epoch, lease_generation: admission.lease_generation,
       task_id: offer.result.task_id, runtime_id: runtime.runtime_id, expected_revision: revision, transition,
       ...(role === 'specialist' ? { result_ref: 'artifact_t21' } : {}),
     };
@@ -234,5 +268,5 @@ async function assertReceipts(session, hello) {
     assert.deepEqual(rows.map((r) => [r.receipt_id, r.profile, r.by, r.outcome]),
       [[member.receipt_id, profile, member.by, member.outcome]]);
   }
-  return { admission: admission.result, taskId: offer.result.task_id };
+  return offer.result.task_id;
 }
