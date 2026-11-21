@@ -1,6 +1,12 @@
 {
   "schema_version": 1,
   "archives": {
+    "t02-hq": {
+      "commit": "0ba92c7a77a5736939ddb18acae8f3c6b428b3a7",
+      "url": "https://codeload.github.com/true-line/agent-bot-hq/tar.gz/0ba92c7a77a5736939ddb18acae8f3c6b428b3a7",
+      "archiveBytes": 436479,
+      "sha256": "d3350693951257baa0589e72f69a3e056e23b0cf7abf71d89827688627d18d3e"
+    },
     "members-machine": {
       "commit": "53f448e8c7967ad90cee30dc72738a495fcd0e60",
       "url": "https://codeload.github.com/true-line/agent-bot-machine/tar.gz/53f448e8c7967ad90cee30dc72738a495fcd0e60",
