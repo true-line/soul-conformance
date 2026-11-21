@@ -11,12 +11,12 @@ import { parseArgs } from 'node:util';
 import { ROOT, verifyContracts } from '../../lib/pins.mjs';
 import { platformContext } from '../../lib/platform.mjs';
 import { suiteRevision } from '../../lib/report.mjs';
-import { requireDarwinClone } from './eligibility.mjs';
+import { claimLinuxEndpoints, requireDarwinClone } from './eligibility.mjs';
 import { hostReport } from './report.mjs';
 
 const {values} = parseArgs({ options: {
   archive:{type:'string'}, sha256:{type:'string'}, commit:{type:'string'}, accounts:{type:'string'},
-  'exclusive-disposable-clone':{type:'boolean'}, 'offline-platform':{type:'boolean'}, out:{type:'string'},
+  'linux-fixture-dir':{type:'string'}, 'exclusive-disposable-clone':{type:'boolean'}, 'offline-platform':{type:'boolean'}, out:{type:'string'},
 } });
 const darwin = process.platform === 'darwin';
 const role = darwin ? '_agent-bot-hq' : 'agent-bot-hq';
@@ -40,6 +40,7 @@ function roleDirectory(tmp, prefix, uid) {
   const path = execFileSync('/usr/bin/sudo', sudo(role,'/usr/bin/mktemp','-d',join(tmp,prefix + 'XXXXXXXX')), io).trim();
   assert.equal(dirname(path), tmp);
   assert.ok(basename(path).startsWith(prefix) && /^[A-Za-z0-9]{8}$/.test(basename(path).slice(prefix.length)));
+  phase = 'HQ private state ownership and mode';
   const st = lstatSync(path);
   assert.ok(st.isDirectory() && st.uid === uid && (st.mode & 0o7777) === 0o700);
   roleDirectories.push({path,st});
@@ -82,7 +83,10 @@ async function run() {
     return uid;
   });
   assert.equal(new Set([process.getuid(),...uids]).size, 4);
-  if (darwin) requireDarwinClone(values['exclusive-disposable-clone'], uids[0]);
+  if (darwin) {
+    assert.equal(values['linux-fixture-dir'], undefined);
+    requireDarwinClone(values['exclusive-disposable-clone'], uids[0]);
+  }
   const suite = suiteRevision();
   const platform = values['offline-platform'] ? null : (await platformContext()).revision;
   phase = 'archive verification';
@@ -107,20 +111,10 @@ async function run() {
   copyFileSync(fileURLToPath(new URL('./native-worker.mjs',import.meta.url)), workerFile);
   chmodSync(workerFile, 0o644);
   chmodSync(stage, 0o755); // This directory contains only verified public code.
-  phase = 'private fixture state creation';
+  phase = 'Linux fixture endpoint reservation';
+  const dir = darwin ? darwinDir : claimLinuxEndpoints(values['linux-fixture-dir'], process.getuid());
+  phase = 'HQ private state allocation';
   home = roleDirectory(tmp, 's2-host-', uids[0]);
-  let dir = darwinDir;
-  if (!darwin) {
-    // HQ supports selecting its Linux endpoint base. Create a distinct namespace
-    // for this run only, as the same non-root owners/groups the provisioner uses.
-    dir = roleDirectory(tmp, 's2-ipc-', uids[0]);
-    execFileSync('/usr/bin/sudo', sudo(role,'/bin/chmod','0755',dir), io);
-    for (const account of accounts) {
-      const gid = execFileSync('/usr/bin/id',['-g',account],io).trim();
-      assert.match(gid, /^[1-9][0-9]*$/);
-      execFileSync('/usr/bin/sudo', ['-n','-u',role,'-g','#' + gid,'--','/bin/mkdir','-m','2750',join(dir,account)], io);
-    }
-  }
   const started = new Date().toISOString();
   let tickets;
   const observations = [];

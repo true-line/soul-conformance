@@ -57,3 +57,16 @@ test('requires an explicitly reserved VM with absent installed supervisor, loade
     [true, isolatedClone({'/usr/bin/pgrep':{status:0,stdout:'99\n',stderr:''}}), missingPlist],
   ]) assert.throws(() => requireDarwinClone(attested,310,probe,inspect));
 });
+
+test('Linux reserves only a fresh root-provisioned namespace and preserves existing claims', async () => {
+  const {claimLinuxEndpoints} = await import('../suites/stage2a/eligibility.mjs');
+  const dir = '/run/soul-conformance.A1b2C3d4';
+  const directory = (uid, mode) => ({uid, gid:0, mode, isDirectory:() => true});
+  const inspect = p => p.endsWith('/claim') ? directory(4001,0o700) : directory(0,0o755);
+  const claims = new Set();
+  const reserve = p => { assert.equal(p, dir+'/claim/used'); assert.ok(!claims.has(p)); claims.add(p); };
+  assert.equal(claimLinuxEndpoints(dir,4001,inspect,reserve),dir);
+  assert.throws(() => claimLinuxEndpoints(dir,4001,inspect,reserve));
+  assert.throws(() => claimLinuxEndpoints('/run/agent-bot-hq/members',4001,inspect,reserve));
+  assert.throws(() => claimLinuxEndpoints(dir,4001,() => directory(4001,0o755),reserve));
+});

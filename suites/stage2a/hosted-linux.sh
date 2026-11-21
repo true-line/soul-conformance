@@ -27,10 +27,18 @@ for role in agent-bot-hq s2harness-a s2harness-b; do
   sudo -n useradd --system --user-group --create-home --shell /usr/sbin/nologin "$role"
   sudo -n chmod 0700 "/home/$role"
 done
+# Provision the reviewed permissions as the disposable runner administrator.
+# No sudoers changes. The collector and each participant remain unprivileged.
+endpoints=$(sudo -n mktemp -d /run/soul-conformance.XXXXXXXX)
+sudo -n chmod 0755 "$endpoints"
+sudo -n install -d -o "$(id -u)" -g "$(id -g)" -m 0700 "$endpoints/claim"
+for account in s2harness-a s2harness-b; do
+  sudo -n install -d -o agent-bot-hq -g "$account" -m 2750 "$endpoints/$account"
+done
 report=reports/stage2a-linux.json
 rc=0
 node suites/stage2a/run.mjs --archive "$work/hq.tar" --sha256 "$archive_sha" \
-  --commit "$hq" --accounts s2harness-a,s2harness-b --offline-platform --out "$report" || rc=$?
+  --commit "$hq" --accounts s2harness-a,s2harness-b --linux-fixture-dir "$endpoints" --offline-platform --out "$report" || rc=$?
 [[ $rc == 1 ]]
 jq -e --arg digest "$archive_sha" --arg hq "$hq" '
   .outcome == "incomplete" and .host.os == "linux" and .host.environment == "isolated-linux-endpoints"
