@@ -18,9 +18,9 @@ Source of record: Soul Agent Platform draft 0.3, Section 14 and Appendix D (`sou
 npm run prepare:pins && npm test && npm run t14 && npm run stage1 && npm run quickstart
 ```
 
-Node 20 or later, Python 3, git, and network access to the public true-line repositories; nothing else is installed. Suites that run today: T14 current-major evidence ([suites/T14-version-mismatch](suites/T14-version-mismatch/README.md)), the Stage 1 T04/T05/T20 task-authority flow, and the runnable [`hello.soul` quickstart](templates/hello.soul/README.md). Each runner accepts `--out` for a JSON report. `npm run t14` verifies implemented checks; `npm run t14:gate` additionally requires the accepted compatibility inventory at freshly fetched platform main. A green T14 evidence job can still report the policy gate blocked.
+Node 20 or later, Python 3, git, and network access to the public true-line repositories; nothing else is installed. Suites that run today include T14 current-major evidence ([suites/T14-version-mismatch](suites/T14-version-mismatch/README.md)), the Stage 1 T04/T05/T20 task-authority flow, and the runnable [`hello.soul` quickstart](templates/hello.soul/README.md). The Stage 2a host runner has separate host/account prerequisites and its positive cooperative result does not pass the protected Stage 2a gate. Each runner accepts `--out` for a JSON report. `npm run t14` verifies implemented checks; `npm run t14:gate` additionally requires the accepted compatibility inventory at freshly fetched platform main. A green T14 evidence job can still report the policy gate blocked.
 
-The [Stage 2a host runner](suites/stage2a/README.md) measures positive caller binding on a selected host with two provisioned fixture accounts.
+The [Stage 2a host runner](suites/stage2a/README.md) exercises positive cooperative caller binding and task receipts in an isolated disposable VM on macOS or isolated Linux endpoints. It reports the protected acceptance tests as not qualified until separate evidence meets their host and profile requirements.
 
 ## Depends on
 
