@@ -117,8 +117,9 @@ async function finishRenewedTask(session, admission, soulId, { taskId, proposalI
   }
 
   const lead = clients.get('lead');
+  const receiptIds = new Set();
   let revision = lead.revision;
-  for (const transition of ['running', 'completed']) {
+  for (const [from, transition] of [['accepted', 'running'], ['running', 'completed']]) {
     const request = {
       contract: 'task/v1', request_id: `req_t21_resume_${transition}`, operation_id: `op_t21_resume_${transition}`,
       installation_epoch: admission.installation_epoch, lease_generation: admission.lease_generation,
@@ -129,6 +130,11 @@ async function finishRenewedTask(session, admission, soulId, { taskId, proposalI
     assert.equal(reply.ok, true);
     const receipt = reply.result;
     assert.ok(receipt.receipt_id);
+    assert.equal(receipt.task_id, request.task_id);
+    assert.equal(receipt.operation_id, request.operation_id);
+    assert.equal(receipt.from, from);
+    assert.ok(!receiptIds.has(receipt.receipt_id), 'distinct transitions require distinct receipts');
+    receiptIds.add(receipt.receipt_id);
     assert.deepEqual([receipt.profile, receipt.by, receipt.outcome, receipt.status, receipt.revision],
       [session.profile, lead.runtime.member_id, 'committed', transition, revision + 1]);
     const repeated = await lead.client.request('task.commit', request);
