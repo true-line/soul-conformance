@@ -56,7 +56,7 @@ async function checkReceipts(t, hq, contracts, bundledBroker = false) {
   const handles = new Set();
   const bindings = new Set();
   const first = await subject.open({ stateHome });
-  let admission, taskId;
+  let admission, originalTask;
   try {
     const reply = await first.hello(hello);
     assert.equal(reply.ok, true);
@@ -65,7 +65,7 @@ async function checkReceipts(t, hq, contracts, bundledBroker = false) {
     await assertEquipment(first, admission, handles, bindings);
     await assertReadiness(first, admission, hello);
     await assertOwnerProfile(hq, first.hqHome);
-    taskId = await assertTaskReceipts(first, hello, admission);
+    originalTask = await assertTaskReceipts(first, hello, admission);
     assertBinds(first, admission, hello.soul_id, bundledBroker, 2);
   } finally { await first.close(); }
 
@@ -82,17 +82,10 @@ async function checkReceipts(t, hq, contracts, bundledBroker = false) {
     await assertReadiness(restarted, reply.result, hello);
     await assertOwnerProfile(hq, restarted.hqHome);
     t.diagnostic('With two distinct fixture harnesses ready, owner status reported cooperative and the missing per-harness OS accounts before and after restart.');
-    for (const runtime of reply.result.admitted_runtimes) {
-      const member = await restarted.member(runtime);
-      const view = await member.request('task.get', { task_id: taskId });
-      assert.equal(view.ok, true);
-      assert.equal(view.result.task.task_id, taskId);
-      assert.equal(view.result.task.accountable_soul, hello.soul_id);
-      assert.equal(view.result.task.status, 'accepted');
-    }
+    await finishRenewedTask(restarted, reply.result, hello.soul_id, originalTask);
     assertBinds(restarted, reply.result, hello.soul_id, bundledBroker, 1);
     t.diagnostic('The owner saw both members ready in both generations. Each runtime renewed its lease and had one cooperative readiness receipt.');
-    t.diagnostic('Both renewed members read the original task through the broker; the persisted bind receipts identify each member and the cooperative profile.');
+    t.diagnostic('The renewed lead completed the original task using the specialist’s persisted proposal. Redelivery returned one cooperative completion receipt, and the renewed specialist observed the final revision.');
     t.diagnostic('Both members received distinct, runtime-bound handles before and after HQ restarted. Every Equip receipt recorded the cooperative profile.');
   } finally { await restarted.close(); }
 
@@ -105,6 +98,52 @@ async function checkReceipts(t, hq, contracts, bundledBroker = false) {
   for (const opaque of [...handles, ...bindings]) {
     assert.ok(!audit.includes(opaque), 'public audit receipts must omit grant handles and channel bindings');
   }
+}
+
+// A successor lease can finish an already accepted task without recreating it.
+async function finishRenewedTask(session, admission, soulId, { taskId, proposalId }) {
+  const clients = new Map();
+  for (const runtime of admission.admitted_runtimes) {
+    const client = await session.member(runtime);
+    const view = await client.request('task.get', { task_id: taskId });
+    assert.equal(view.ok, true);
+    const { task, proposals } = view.result;
+    assert.equal(task.task_id, taskId);
+    assert.equal(task.accountable_soul, soulId);
+    assert.equal(task.status, 'accepted');
+    assert.deepEqual(proposals.map(p => [p.proposal_id, p.role, p.transition, p.evidence]),
+      [[proposalId, 'specialist', 'completed', ['artifact_t21']]], 'both renewed members must receive the original specialist proposal');
+    clients.set(runtime.role, { client, runtime, revision: task.revision, evidence: proposals[0].evidence[0] });
+  }
+
+  const lead = clients.get('lead');
+  let revision = lead.revision;
+  for (const transition of ['running', 'completed']) {
+    const request = {
+      contract: 'task/v1', request_id: `req_t21_resume_${transition}`, operation_id: `op_t21_resume_${transition}`,
+      installation_epoch: admission.installation_epoch, lease_generation: admission.lease_generation,
+      runtime_id: lead.runtime.runtime_id, task_id: taskId, expected_revision: revision, transition,
+      ...(transition === 'completed' ? { result_ref: lead.evidence } : {}),
+    };
+    const reply = await lead.client.request('task.commit', request);
+    assert.equal(reply.ok, true);
+    const receipt = reply.result;
+    assert.ok(receipt.receipt_id);
+    assert.deepEqual([receipt.profile, receipt.by, receipt.outcome, receipt.status, receipt.revision],
+      [session.profile, lead.runtime.member_id, 'committed', transition, revision + 1]);
+    const repeated = await lead.client.request('task.commit', request);
+    assert.equal(repeated.ok, true);
+    assert.deepEqual(repeated.result, receipt);
+    const { receipts } = readJson(session.hqHome, 'store.json');
+    const rows = receipts.filter(row => row.kind === 'task.commit' && row.operation_id === request.operation_id);
+    assert.deepEqual(rows.map(row => [row.receipt_id, row.profile, row.runtime_id]),
+      [[receipt.receipt_id, session.profile, lead.runtime.runtime_id]]);
+    revision = receipt.revision;
+  }
+  const result = await clients.get('specialist').client.request('task.get', { task_id: taskId });
+  assert.equal(result.ok, true);
+  const { task } = result.result;
+  assert.deepEqual([task.task_id, task.status, task.revision, task.evidence], [taskId, 'completed', revision, [lead.evidence]]);
 }
 
 function assertBinds(session, admission, soulId, bundledBroker, count) {
@@ -292,6 +331,7 @@ async function assertTaskReceipts(session, hello, admission) {
     assert.equal(receipt.operation_id, request.operation_id);
     assert.equal(receipt.by, runtime.member_id);
     assert.equal(receipt.outcome, outcome);
+    if (outcome === 'proposal') assert.ok(receipt.proposal_id);
     const secondConnection = await session.member(runtime);
     const repeated = await secondConnection.request('task.commit', request);
     assert.equal(repeated.ok, true);
@@ -310,5 +350,5 @@ async function assertTaskReceipts(session, hello, admission) {
     assert.deepEqual(rows.map((r) => [r.receipt_id, r.profile, r.by, r.outcome]),
       [[member.receipt_id, profile, member.by, member.outcome]]);
   }
-  return offer.result.task_id;
+  return { taskId: offer.result.task_id, proposalId: memberReceipts.find(r => r.outcome === 'proposal').proposal_id };
 }

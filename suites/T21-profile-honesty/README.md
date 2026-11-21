@@ -19,7 +19,11 @@ This fixture provisions no credential references or approved destinations. The
 suite restarts HQ on the same store, re-admits the Soul and equips both members
 under the new lease generation. It checks the returned grants and persisted
 cooperative Equip receipts without recording the handles or bindings. Both
-renewed members then bind to the broker and read their Soul's original task.
+renewed members then bind to the broker and read their Soul's original task
+and its persisted specialist proposal. The renewed lead takes that task from
+accepted through running to completed using the proposal's evidence. Redelivery
+of each transition returns the same cooperative receipt and records it once.
+The renewed specialist reads the completed revision and evidence.
 In each generation the entry point sends Ready and renews the lease for both
 members. The test matches each ready runtime ID from admission to HQ's stored
 member, role and adapter assignment for that generation and verifies that the
