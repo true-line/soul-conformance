@@ -11,6 +11,8 @@ export function hostReport({started, suite, platform, environment, os, arch, rel
     assert.equal(o.pass, i+1);
     assert.equal(o.account_count, 2);
     assert.equal(o.binds, 4);
+    assert.equal(o.copied_binding_refusals, 2);
+    assert.equal(o.persisted_copied_binding_refusals, (i+1)*2);
     assert.equal(o.directives, 2);
     assert.equal(o.persisted_receipts, (i+1)*4);
     assert.equal(o.task_offer_receipts, 1);
@@ -33,6 +35,8 @@ export function hostReport({started, suite, platform, environment, os, arch, rel
     adapter_versions:{},
     checks:[{id:'T01-positive',result:'pass',observed:observations.map(o => ({pass:o.pass,
       distinct_harness_uids:o.account_count, own_account_binds:o.binds, directive_reads:o.directives,
+      copied_binding_refusals:o.copied_binding_refusals,
+      persisted_copied_binding_refusals:o.persisted_copied_binding_refusals,
       persisted_cooperative_bind_receipts:o.persisted_receipts, owner_task_offer_receipts:o.task_offer_receipts,
       cooperative_member_task_receipts:o.cooperative_task_receipts, idempotent_task_receipt_replays:o.task_receipts_replayed,
       task_state_retained_after_restart:o.task_state_retained}))},

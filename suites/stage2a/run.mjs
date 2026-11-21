@@ -130,6 +130,18 @@ async function run() {
       const members = [];
       const taskRequests = {};
       const taskReceipts = {};
+      phase = 'copied binding refusal, pass ' + pass;
+      for (const [i, account] of accounts.entries()) {
+        const copiedTicket = ready.tickets[1-i];
+        const probe = worker(account, 'cross-account-bind', {
+          account, socket:ready.sockets[i], copiedTicket,
+        });
+        probe.finish();
+        try {
+          assert.deepEqual(await probe.receive(), {uid:uids[i+1], refused:true});
+          assert.deepEqual(await probe.exit, [0,null]);
+        } finally { probe.child.stdin.end(); await probe.exit; }
+      }
       for (const [i, account] of accounts.entries()) {
         phase = 'own-account bind and directive read, pass ' + pass;
         const ticket = ready.tickets[i];

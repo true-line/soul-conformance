@@ -86,6 +86,22 @@ async function memberTask({ account, socket, ticket, task, pass }) {
   } finally { await first.close(); }
 }
 
+async function crossAccountBind({ account, socket, copiedTicket }) {
+  assert.equal(userInfo().username, account);
+  const { connectSocket } = await load('hq/socket.mjs');
+  const { bindProof } = await load('hq/admission.mjs');
+  const conn = await connectSocket(socket);
+  try {
+    const challenge = await conn.request('bind.challenge', { runtime_id:copiedTicket.runtime_id });
+    assert.equal(challenge.ok, true);
+    const proof = bindProof(copiedTicket.channel_binding, challenge.result.nonce, copiedTicket.runtime_id);
+    const refused = await conn.request('bind', { runtime_id:copiedTicket.runtime_id, proof });
+    assert.equal(refused.ok, false, 'a copied binding must be refused before an operation');
+    assert.equal(refused.refusal?.error ?? refused.host_refusal?.code, 'caller_mismatch');
+    send({uid:process.getuid(), refused:true});
+  } finally { await conn.close(); }
+}
+
 async function host({ home, account, accounts, dir, pass, previous }) {
   assert.equal(userInfo().username, account);
   const { createHQ } = await load('hq/hq.mjs');
@@ -208,7 +224,15 @@ async function host({ home, account, accounts, dir, pass, previous }) {
     }
     const bindsThisPass = rows.length - (pass - 1) * 4;
     assert.equal(bindsThisPass, 4);
+    const refusedRows = hq.core.receipts.filter(r => r.kind === 'hq.bind.refused');
+    assert.equal(refusedRows.length, pass * 2);
+    for (const [i, ticket] of tickets.entries()) {
+      const attemptedBy = accounts[1-i];
+      assert.equal(refusedRows.filter(r => r.runtime_id === ticket.runtime_id &&
+        r.caller_account === attemptedBy && r.code === 'caller_mismatch').length, pass);
+    }
     send({ pass, binds:bindsThisPass, persisted_receipts:rows.length, task_offer_receipts:1,
+      copied_binding_refusals:2, persisted_copied_binding_refusals:refusedRows.length,
       cooperative_task_receipts:2, task_receipts_replayed:command.memberReceipts.filter(row => row.replayed).length,
       task_state_retained:pass === 2 ? true : null, task,
       profile:status.profile,
@@ -235,6 +259,7 @@ function assertTaskAudit(receipts, task, afterRestart) {
 try {
   const first = await receive();
   if (process.argv[2] === 'member-task') await memberTask(first);
+  else if (process.argv[2] === 'cross-account-bind') await crossAccountBind(first);
   else if (process.argv[2] === 'host') await host(first);
   else throw Error('unexpected action');
 } catch {
