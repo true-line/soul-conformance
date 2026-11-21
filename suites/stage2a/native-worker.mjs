@@ -18,23 +18,72 @@ const receive = async () => {
 };
 const send = value => process.stdout.write(JSON.stringify(value) + '\n');
 
-async function member({ account, socket, ticket }) {
+async function memberTask({ account, socket, ticket, task, pass }) {
   assert.equal(userInfo().username, account);
   const { connectSocket } = await load('hq/socket.mjs');
   const { bindProof } = await load('hq/admission.mjs');
-  const conn = await connectSocket(socket);
+  async function bound() {
+    const conn = await connectSocket(socket);
+    try {
+      const challenge = await conn.request('bind.challenge', {runtime_id:ticket.runtime_id});
+      assert.ok(challenge.ok && challenge.result.nonce);
+      const proof = bindProof(ticket.channel_binding, challenge.result.nonce, ticket.runtime_id);
+      const bind = await conn.request('bind', {runtime_id:ticket.runtime_id, proof});
+      assert.equal(bind.ok, true);
+      assert.deepEqual(bind.result, {role:ticket.role, member_id:ticket.member_id, runtime_id:ticket.runtime_id});
+      return conn;
+    } catch (error) {
+      await conn.close();
+      throw error;
+    }
+  }
+  const first = await bound();
   try {
-    const { channel_binding, ...expected } = ticket;
-    const runtime_id = ticket.runtime_id;
-    const challenge = await conn.request('bind.challenge', {runtime_id});
-    assert.ok(challenge.ok && challenge.result.nonce);
-    const proof = bindProof(channel_binding, challenge.result.nonce, runtime_id);
-    const bind = await conn.request('bind', {runtime_id, proof});
-    assert.equal(bind.ok, true);
-    assert.deepEqual(bind.result, expected);
-    assert.equal((await conn.request('task.directives', {})).ok, true);
-    send({ uid:process.getuid(), bound:true, directives_read:true });
-  } finally { await conn.close(); }
+    const directiveReply = await first.request('task.directives', {});
+    assert.equal(directiveReply.ok, true);
+    const directives = directiveReply.result.directives;
+    assert.ok(Array.isArray(directives));
+    if (pass === 1 && ticket.role === 'lead') {
+      assert.equal(directives.length, 1);
+      const [directive] = directives;
+      assert.deepEqual([directive.kind, directive.issuer.principal, directive.recipient,
+        directive.task_or_decision_reference.task_id],
+      ['directive', 'owner', task.soul_id, task.offer.task_id]);
+      assert.equal(directive.payload.task.task_id, task.offer.task_id);
+      assert.equal(directive.payload.task.status, 'offered');
+    } else assert.deepEqual(directives, [], 'accepted work must no longer appear as a waiting directive');
+    const view = await first.request('task.get', {task_id:task.offer.task_id});
+    assert.equal(view.ok, true);
+    const {task:record, proposals} = view.result;
+    assert.equal(record.task_id, task.offer.task_id);
+    assert.equal(record.accountable_soul, task.soul_id);
+    if (pass === 1) {
+      const expected = ticket.role === 'lead' ? 'offered' : 'accepted';
+      assert.equal(record.status, expected);
+      assert.equal(proposals.length, 0);
+    } else {
+      assert.equal(record.status, 'accepted');
+      assert.deepEqual(proposals.map(p => [p.proposal_id, p.role, p.transition, p.evidence]),
+        [[task.memberReceipts.specialist.receipt.proposal_id, 'specialist', 'completed', ['artifact_stage2a']]]);
+    }
+    const request = task.requests[ticket.role];
+    assert.equal(request.runtime_id, ticket.runtime_id);
+    const reply = await first.request('task.commit', request);
+    assert.equal(reply.ok, true);
+    const expected = task.memberReceipts?.[ticket.role]?.receipt;
+    if (expected) assert.deepEqual(reply.result, expected);
+    assert.deepEqual([reply.result.profile, reply.result.task_id, reply.result.operation_id, reply.result.by, reply.result.outcome],
+      ['managed-cooperative', task.offer.task_id, request.operation_id, ticket.member_id,
+        ticket.role === 'lead' ? 'committed' : 'proposal']);
+    const second = await bound();
+    try {
+      const repeated = await second.request('task.commit', request);
+      assert.equal(repeated.ok, true);
+      assert.deepEqual(repeated.result, reply.result, 'a fresh bound connection must replay the original task receipt');
+      send({uid:process.getuid(), bound:true, directives_read:true, task_receipt:reply.result,
+        task_replayed:true, after_restart:pass === 2});
+    } finally { await second.close(); }
+  } finally { await first.close(); }
 }
 
 async function host({ home, account, accounts, dir, pass, previous }) {
@@ -81,7 +130,18 @@ async function host({ home, account, accounts, dir, pass, previous }) {
       assert.equal(endpoint.path, join(dir, account, 'broker.sock'));
       return endpoint.path;
     });
-    let tickets = previous;
+    let tickets = previous?.tickets;
+    let task = previous?.task;
+    if (pass === 2) {
+      assert.ok(task?.offer?.task_id && task.memberReceipts?.lead && task.memberReceipts?.specialist);
+      const owner = await connectSocket(hq.paths.control);
+      try {
+        const replay = await owner.request('tasks.offer', task.offerInput);
+        assert.equal(replay.ok, true);
+        assert.deepEqual(replay.result, task.offer);
+      } finally { await owner.close(); }
+      assertTaskAudit(hq.core.receipts, task, true);
+    }
     if (pass === 1) {
       const admission = await connectSocket(hq.paths.admission);
       try {
@@ -94,15 +154,50 @@ async function host({ home, account, accounts, dir, pass, previous }) {
         });
         assert.equal(new Set(tickets.map(t => t.runtime_id)).size, 2);
         assert.equal(new Set(tickets.map(t => t.channel_binding)).size, 2);
+        const owner = await connectSocket(hq.paths.control);
+        try {
+          const offerInput = {
+            operation_id: 'op_stage2a_owner_offer',
+            objective: 'Verify cooperative task receipts across the packaged HQ restart.',
+            done_criteria: 'The lead accepts and the specialist proposes fixture evidence.',
+            accountable_soul: hello.soul_id,
+          };
+          const offer = await owner.request('tasks.offer', offerInput);
+          assert.equal(offer.ok, true);
+          assert.equal(offer.result.profile, status.profile);
+          assert.equal(offer.result.operation_id, offerInput.operation_id);
+          assert.ok(offer.result.task_id && offer.result.receipt_id);
+          task = {soul_id:hello.soul_id, offerInput, offer:offer.result,
+            installation_epoch:reply.result.installation_epoch, lease_generation:reply.result.lease_generation};
+        } finally { await owner.close(); }
       } finally { await admission.close(); }
     }
-    send({sockets, tickets});
-    assert.equal(await receive(), 'check-receipts');
+    send({sockets, tickets, task, pass});
+    const command = await receive();
+    assert.equal(command?.cmd, 'check-receipts');
+    if (pass === 1) {
+      assert.equal(command.memberReceipts.length, 2);
+      const byRole = Object.fromEntries(command.memberReceipts.map(row => [row.role, row]));
+      assert.deepEqual(Object.keys(byRole).sort(), ['lead','specialist']);
+      const lead = byRole.lead.receipt;
+      const specialist = byRole.specialist.receipt;
+      assert.equal(lead.outcome, 'committed');
+      assert.equal(lead.status, 'accepted');
+      assert.equal(specialist.outcome, 'proposal');
+      assert.ok(specialist.proposal_id);
+      task.requests = command.requests;
+      task.memberReceipts = Object.fromEntries(Object.entries(byRole).map(([role,row]) => [role,
+        {runtime_id:row.runtime_id, receipt:row.receipt}]));
+    } else {
+      assert.deepEqual(command.memberReceipts.map(row => [row.role, row.receipt]),
+        Object.entries(task.memberReceipts).map(([role, value]) => [role, value.receipt]).sort(([a],[b]) => a.localeCompare(b)));
+    }
+    assertTaskAudit(hq.core.receipts, task, pass === 2);
     const rows = hq.core.receipts.filter(r => r.kind === 'hq.bind');
-    assert.equal(rows.length, pass * 2);
+    assert.equal(rows.length, pass * 4);
     for (const [i, ticket] of tickets.entries()) {
       const own = rows.filter(r => r.runtime_id === ticket.runtime_id);
-      assert.equal(own.length, pass);
+      assert.equal(own.length, pass * 2);
       for (const r of own) {
         assert.equal(r.caller_account, accounts[i]);
         assert.equal(r.member_id, ticket.member_id);
@@ -111,15 +206,33 @@ async function host({ home, account, accounts, dir, pass, previous }) {
         assert.equal(r.proof, 'hmac-sha256');
       }
     }
-    send({ pass, persisted_receipts:rows.length, profile:status.profile,
+    send({ pass, persisted_receipts:rows.length, task_offer_receipts:1,
+      cooperative_task_receipts:2, task_receipts_replayed:command.memberReceipts.filter(row => row.replayed).length,
+      task_state_retained:pass === 2 ? true : null, task,
+      profile:status.profile,
       definition_digest:hello.definition_digest, soul_id:hello.soul_id });
   } finally { await hq.stop(); }
   checkVacant();
 }
 
+function assertTaskAudit(receipts, task, afterRestart) {
+  const offerRows = receipts.filter(r => r.kind === 'task.offer' && r.operation_id === task.offerInput.operation_id);
+  assert.deepEqual(offerRows.map(r => [r.receipt_id,r.profile]), [[task.offer.receipt_id,'managed-cooperative']]);
+  for (const role of ['lead','specialist']) {
+    const expected = task.memberReceipts?.[role];
+    if (!expected) {
+      if (afterRestart) throw Error('missing persisted member task receipts');
+      continue;
+    }
+    const rows = receipts.filter(r => r.kind === 'task.commit' && r.operation_id === expected.receipt.operation_id);
+    assert.deepEqual(rows.map(r => [r.receipt_id,r.profile,r.runtime_id,r.by,r.outcome]),
+      [[expected.receipt.receipt_id,'managed-cooperative',expected.runtime_id,expected.receipt.by,expected.receipt.outcome]]);
+  }
+}
+
 try {
   const first = await receive();
-  if (process.argv[2] === 'member') await member(first);
+  if (process.argv[2] === 'member-task') await memberTask(first);
   else if (process.argv[2] === 'host') await host(first);
   else throw Error('unexpected action');
 } catch {

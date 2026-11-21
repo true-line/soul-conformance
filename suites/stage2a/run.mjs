@@ -116,36 +116,63 @@ async function run() {
   phase = 'HQ private state allocation';
   home = roleDirectory(tmp, 's2-host-', uids[0]);
   const started = new Date().toISOString();
-  let tickets;
+  let previous;
   const observations = [];
   for (const pass of [1,2]) {
     phase = 'fixture HQ startup, pass ' + pass;
     if (darwin) requireDarwinClone(values['exclusive-disposable-clone'], uids[0]);
-    const host = worker(role, 'host', {home, account:role, accounts, dir, pass, previous:tickets});
+    const host = worker(role, 'host', {home, account:role, accounts, dir, pass, previous});
     try {
       const ready = await host.receive();
       assert.equal(ready.sockets.length, 2);
       assert.equal(ready.tickets.length, 2);
-      if (tickets) assert.deepEqual(ready.tickets, tickets);
-      tickets = ready.tickets;
+      if (previous) assert.deepEqual(ready.tickets, previous.tickets);
       const members = [];
+      const taskRequests = {};
+      const taskReceipts = {};
       for (const [i, account] of accounts.entries()) {
         phase = 'own-account bind and directive read, pass ' + pass;
+        const ticket = ready.tickets[i];
         assert.equal(ready.sockets[i], join(dir, account, 'broker.sock'));
-        const m = worker(account, 'member', {account, socket:ready.sockets[i], ticket:tickets[i]});
+        const roleName = ticket.role;
+        let request;
+        if (pass === 1) {
+          const expectedRevision = roleName === 'lead'
+            ? ready.task.offer.revision : taskReceipts.lead.receipt.revision;
+          request = {
+            contract:'task/v1', request_id:`req_stage2a_${roleName}`, operation_id:`op_stage2a_${roleName}`,
+            installation_epoch:ready.task.installation_epoch, lease_generation:ready.task.lease_generation,
+            runtime_id:ticket.runtime_id, task_id:ready.task.offer.task_id, expected_revision:expectedRevision,
+            transition:roleName === 'lead' ? 'accepted' : 'completed',
+            ...(roleName === 'specialist' ? {result_ref:'artifact_stage2a'} : {}),
+          };
+          taskRequests[roleName] = request;
+        } else {
+          request = ready.task.requests[roleName];
+        }
+        const task = {...ready.task, requests:{[roleName]:request}};
+        const m = worker(account, 'member-task', {account, socket:ready.sockets[i], ticket, task, pass});
         m.finish();
         try {
           const result = await m.receive();
-          assert.deepEqual(result, {bound:true, directives_read:true, uid:uids[i+1]});
-          members.push(result);
+          assert.deepEqual([result.bound,result.directives_read,result.uid], [true,true,uids[i+1]]);
+          assert.equal(result.task_replayed, true);
+          assert.equal(result.after_restart, pass === 2);
+          if (pass === 1) taskReceipts[roleName] = {runtime_id:ticket.runtime_id, receipt:result.task_receipt};
+          else assert.deepEqual(result.task_receipt, ready.task.memberReceipts[roleName].receipt);
+          members.push({...result, role:roleName});
           assert.deepEqual(await m.exit, [0,null]);
         } finally { m.child.stdin.end(); await m.exit; }
       }
       phase = 'persisted receipt check, pass ' + pass;
-      host.finish('check-receipts');
+      host.finish({cmd:'check-receipts', requests:pass === 1 ? taskRequests : ready.task.requests,
+        memberReceipts:members.map(({role:memberRole, uid, task_receipt, task_replayed, after_restart}) =>
+          ({role:memberRole, runtime_id:ready.tickets.find(t => t.role === memberRole).runtime_id,
+            uid, receipt:task_receipt, replayed:task_replayed, after_restart}))});
       const receipt = await host.receive();
-      observations.push({...receipt, account_count:new Set(members.map(m => m.uid)).size, binds:members.filter(m => m.bound).length,
-        directives:members.filter(m => m.directives_read).length});
+      observations.push({...receipt, account_count:new Set(members.map(m => m.uid)).size,
+        binds:receipt.persisted_receipts, directives:members.filter(m => m.directives_read).length});
+      previous = {tickets:ready.tickets, task:receipt.task};
       assert.deepEqual(await host.exit, [0,null]);
     } finally { host.child.stdin.end(); await host.exit; }
   }
