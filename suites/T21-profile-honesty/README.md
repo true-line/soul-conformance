@@ -29,7 +29,12 @@ members. The test matches each ready runtime ID from admission to HQ's stored
 member, role and adapter assignment for that generation and verifies that the
 lead and specialist have distinct fixture adapters. Once both are ready, the ordinary `hq status --json` command must report
 `managed-cooperative` and explain that per-harness OS accounts are missing,
-before and after restart. Each runtime has one persisted cooperative readiness
+before and after restart. In each generation the admitting entry point also requests
+a dedicated launch for each member on its own runtime. With no harness accounts
+configured, each request returns `host.launch_unavailable` and produces one
+`managed-cooperative` refusal receipt. Owner status shows no launch reservation.
+This exercises the configured launch boundary without starting an agent.
+Each runtime has one persisted cooperative readiness
 receipt. Both members use the same OS account. This fixture does not launch
 either adapter or provision credentials.
 Each successful connection before and after restart must have one cooperative
