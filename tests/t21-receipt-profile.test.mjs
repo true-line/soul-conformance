@@ -184,13 +184,32 @@ async function assertReadiness(session, admission, hello) {
   assert.equal(owner.ok, true);
   const soul = owner.result.find(row => row.soul_id === hello.soul_id);
   assert.equal(soul?.lease_generation, admission.lease_generation);
-  const { receipts } = readJson(session.hqHome, 'store.json');
+  // The owner view reports readiness; the adapter assignment is in HQ's persisted admission row.
+  const { receipts, tables } = readJson(session.hqHome, 'store.json');
+  const storedRuntimes = new Map(new Map(tables).get('hq-admission\0runtimes'));
+  const readyAdapters = new Set();
   for (const runtime of admission.admitted_runtimes) {
-    assert.equal(soul.runtimes.find(row => row.member_id === runtime.member_id)?.ready, true);
+    const expected = hello.requested_roles.find(role => role.member_id === runtime.member_id);
+    assert.ok(expected, 'HQ admitted an unexpected member');
+    const visible = soul.runtimes.find(row => row.member_id === runtime.member_id);
+    assert.equal(visible?.role, expected.role);
+    assert.equal(visible.ready, true);
+    const stored = storedRuntimes.get(runtime.runtime_id);
+    assert.ok(stored, 'the admitted runtime must have a persisted assignment');
+    assert.equal(stored.soul_id, hello.soul_id);
+    assert.equal(stored.member_id, runtime.member_id);
+    assert.equal(stored.role, expected.role);
+    assert.equal(runtime.role, expected.role);
+    assert.equal(stored.lease_generation, admission.lease_generation);
+    assert.equal(stored.superseded, false);
+    assert.equal(stored.ready, true);
+    assert.equal(stored.adapter_id, expected.adapter_id, 'the ready member must retain its own fixture adapter');
+    readyAdapters.add(stored.adapter_id);
     const rows = receipts.filter(row => row.kind === 'hq.ready' && row.runtime_id === runtime.runtime_id);
     assert.deepEqual(rows.map(row => [row.readiness_state, row.profile]), [['cold', 'managed-cooperative']],
       'each ready runtime needs its own cooperative readiness receipt');
   }
+  assert.equal(readyAdapters.size, 2, 'the two ready members must use distinct fixture adapters');
 }
 
 // A Hello expresses a preference. The contract permits a typed refusal or a
