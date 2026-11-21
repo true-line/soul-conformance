@@ -1,12 +1,15 @@
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
+import { execFile, execFileSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { test } from 'node:test';
+import { promisify } from 'node:util';
 import { readJson } from '../lib/fixtures.mjs';
 import { ARCHIVES_PIN, CACHE, prepareContracts, prepareSubject, verifyContracts } from '../lib/pins.mjs';
 import { stage1Subject } from '../lib/stage1-subject.mjs';
+
+const runCLI = promisify(execFile);
 
 test('Cooperative admission, owner offer and brokered member receipts agree with the recorded profile', async (t) => {
   const hq = prepareSubject('hq', ARCHIVES_PIN['hq-t21'], 'hq-t21');
@@ -36,7 +39,17 @@ async function checkReceipts(t, hq, contracts, bundledBroker = false) {
   const fixture = readJson(contracts, 'fixtures/positive/hello.first-start.json').input;
   const profile = 'managed-cooperative';
   const protectedRequest = readJson(contracts, 'fixtures/negative/hello.unsupported-profile.json');
-  const hello = { ...fixture, request_id: 'req_t21_coop', requested_profile: profile };
+  // Run the published preference fixture unchanged, with its own accepted definition.
+  const preferenceSubject = await stage1Subject(hq, contracts, protectedRequest.input, { notices: true, bundledBroker });
+  const preference = await preferenceSubject.open();
+  try { t.diagnostic(await assertProtectedPreference(preference, protectedRequest)); }
+  finally { await preference.close(); }
+
+  // The two fixture harnesses share this cooperative host account. No adapter is launched.
+  const hello = { ...fixture, request_id: 'req_t21_coop', requested_profile: profile,
+    definition_digest: `sha256:${'b2'.repeat(32)}`,
+    requested_roles: fixture.requested_roles.map(role => ({ ...role, adapter_id: `fixture-${role.role}` })),
+  };
   const subject = await stage1Subject(hq, contracts, hello, { notices: true, bundledBroker });
   const stateHome = mkdtempSync(join(CACHE, 'equip-'));
   t.after(() => rmSync(stateHome, { recursive: true, force: true }));
@@ -45,13 +58,13 @@ async function checkReceipts(t, hq, contracts, bundledBroker = false) {
   const first = await subject.open({ stateHome });
   let admission, taskId;
   try {
-    t.diagnostic(await assertProtectedPreference(first, protectedRequest));
     const reply = await first.hello(hello);
     assert.equal(reply.ok, true);
     admission = reply.result;
     assert.equal(admission.profile, profile);
     await assertEquipment(first, admission, handles, bindings);
     await assertReadiness(first, admission, hello);
+    await assertOwnerProfile(hq, first.hqHome);
     taskId = await assertTaskReceipts(first, hello, admission);
     assertBinds(first, admission, hello.soul_id, bundledBroker, 2);
   } finally { await first.close(); }
@@ -67,6 +80,8 @@ async function checkReceipts(t, hq, contracts, bundledBroker = false) {
     assert.equal(reply.result.lease_generation, admission.lease_generation + 1);
     await assertEquipment(restarted, reply.result, handles, bindings);
     await assertReadiness(restarted, reply.result, hello);
+    await assertOwnerProfile(hq, restarted.hqHome);
+    t.diagnostic('With two distinct fixture harnesses ready, owner status reported cooperative and the missing per-harness OS accounts before and after restart.');
     for (const runtime of reply.result.admitted_runtimes) {
       const member = await restarted.member(runtime);
       const view = await member.request('task.get', { task_id: taskId });
@@ -137,6 +152,14 @@ async function assertEquipment(session, admission, handles, bindings) {
     assert.deepEqual(rows.map(row => [row.credential_references, row.profile]),
       [[0, session.profile], [0, session.profile]]);
   }
+}
+
+async function assertOwnerProfile(hq, home) {
+  const { stdout } = await runCLI(process.execPath, [join(hq, 'hq/main.mjs'), 'status', '--home', home, '--json'], { timeout: 10000 });
+  const status = JSON.parse(stdout);
+  assert.equal(status.profile, 'managed-cooperative');
+  assert.ok(status.hq.profileReasons.some(reason => reason.includes('(D7)') && /share one account|no OS account per harness/i.test(reason)),
+    'owner status must disclose the missing per-harness account boundary');
 }
 
 async function assertReadiness(session, admission, hello) {
