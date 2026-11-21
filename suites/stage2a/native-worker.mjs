@@ -206,7 +206,9 @@ async function host({ home, account, accounts, dir, pass, previous }) {
         assert.equal(r.proof, 'hmac-sha256');
       }
     }
-    send({ pass, persisted_receipts:rows.length, task_offer_receipts:1,
+    const bindsThisPass = rows.length - (pass - 1) * 4;
+    assert.equal(bindsThisPass, 4);
+    send({ pass, binds:bindsThisPass, persisted_receipts:rows.length, task_offer_receipts:1,
       cooperative_task_receipts:2, task_receipts_replayed:command.memberReceipts.filter(row => row.replayed).length,
       task_state_retained:pass === 2 ? true : null, task,
       profile:status.profile,

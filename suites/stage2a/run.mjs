@@ -171,7 +171,7 @@ async function run() {
             uid, receipt:task_receipt, replayed:task_replayed, after_restart}))});
       const receipt = await host.receive();
       observations.push({...receipt, account_count:new Set(members.map(m => m.uid)).size,
-        binds:receipt.persisted_receipts, directives:members.filter(m => m.directives_read).length});
+        directives:members.filter(m => m.directives_read).length});
       previous = {tickets:ready.tickets, task:receipt.task};
       assert.deepEqual(await host.exit, [0,null]);
     } finally { host.child.stdin.end(); await host.exit; }

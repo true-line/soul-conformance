@@ -9,7 +9,7 @@ export function hostReport({started, suite, platform, environment, os, arch, rel
     assert.equal(o.profile, 'managed-cooperative');
     assert.equal(o.pass, i+1);
     assert.equal(o.account_count, 2);
-    assert.equal(o.binds, (i+1)*4);
+    assert.equal(o.binds, 4);
     assert.equal(o.directives, 2);
     assert.equal(o.persisted_receipts, (i+1)*4);
     assert.equal(o.task_offer_receipts, 1);
