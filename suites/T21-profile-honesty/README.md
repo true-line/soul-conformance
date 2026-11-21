@@ -21,8 +21,13 @@ under the new lease generation. It checks the returned grants and persisted
 cooperative Equip receipts without recording the handles or bindings. Both
 renewed members then bind to the broker and read their Soul's original task.
 In each generation the entry point sends Ready and renews the lease for both
-members. The owner sees both members ready, and each runtime has one persisted
-cooperative readiness receipt. The fixture uses no credentials.
+members. The test matches each ready runtime ID from admission to HQ's stored
+member, role and adapter assignment for that generation and verifies that the
+lead and specialist have distinct fixture adapters. Once both are ready, the ordinary `hq status --json` command must report
+`managed-cooperative` and explain that per-harness OS accounts are missing,
+before and after restart. Each runtime has one persisted cooperative readiness
+receipt. Both members use the same OS account. This fixture does not launch
+either adapter or provision credentials.
 Each successful connection before and after restart must have one cooperative
 bind receipt identifying its runtime, member, Soul and proof method. The Darwin
 archive exercises the production broker's keyed challenge on each new connection.
