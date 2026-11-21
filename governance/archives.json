@@ -31,6 +31,12 @@
       "archiveBytes": 58404,
       "sha256": "35fff8c21f5f3224c3c1a96e36d4520a6f5bc246cb7894d8ec3f7f5c1dac4223"
     },
+    "runtime-profile-t21": {
+      "commit": "55a3a03e3557b5f34c891715f544d0a22e0fed76",
+      "url": "https://codeload.github.com/true-line/agent-bot-souls/tar.gz/55a3a03e3557b5f34c891715f544d0a22e0fed76",
+      "archiveBytes": 82772,
+      "sha256": "0606f9cde8b0c88b4f593479b1850b73bdd34d6cdbe2b27b5b3c184299744758"
+    },
     "broker": {
       "commit": "972fcbed06c8ff79bf60bd9129f5da54e22f5772",
       "url": "https://codeload.github.com/true-line/agent-bot-comms/tar.gz/972fcbed06c8ff79bf60bd9129f5da54e22f5772",
