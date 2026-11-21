@@ -61,6 +61,15 @@ export function verifyContinuity(before, after) {
     || before.requestNonce === after.requestNonce) throw new Error('restart did not produce a fresh request and proof');
 }
 
+// Only the hardware model identifier is recorded; no machine identifier or
+// serial number belongs in this observation.
+export function observationMetadata(model, nodeVersion, archiveSha256) {
+  if (typeof model !== 'string' || model.length > 64 || !/^[A-Za-z]+[0-9]+,[0-9]+$/.test(model)) throw new Error('invalid hardware model identifier');
+  if (typeof nodeVersion !== 'string' || !/^v\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/.test(nodeVersion)) throw new Error('invalid Node version');
+  if (typeof archiveSha256 !== 'string' || !/^[a-f0-9]{64}$/.test(archiveSha256)) throw new Error('invalid verified HQ archive digest');
+  return { hardware_model: model, node_version: nodeVersion, hq_archive_sha256: archiveSha256 };
+}
+
 async function run(argv) {
   const account = userInfo();
   const uid = process.getuid?.();
@@ -144,8 +153,11 @@ async function observePairedSigning({ home, uid, machineRoleCommand, machineRole
   const after = await observe(await waitForStatus(readStatus, true));
   verifyContinuity(before, after);
   const os = (option) => execFileSync('/usr/bin/sw_vers', [option], { encoding: 'utf8', timeout: 5000 }).trim();
+  const model = execFileSync('/usr/sbin/sysctl', ['-n', 'hw.model'], { encoding: 'utf8', timeout: 5000 }).trim();
+  // archive.py --verify has checked the pinned archive bytes and extraction.
+  const metadata = observationMetadata(model, process.version, pin.sha256);
   console.log(JSON.stringify({ scope: 'T02 paired positive signing observation', outcome: 'observed', host_qualification: 'not_assessed',
-    hq_commit: pin.commit, platform: process.platform, arch: process.arch, macos: os('-productVersion'), build: os('-buildVersion'),
+    hq_commit: pin.commit, ...metadata, platform: process.platform, arch: process.arch, macos: os('-productVersion'), build: os('-buildVersion'),
     hq_uid: uid, machine_socket_uid: after.socketUid, signed_status_state: after.statusState, verified_es256: true, offline_refusal: refusal.code,
     same_pairing_and_generation: true, fresh_proof: true, scratch_signer_paths_absent: ['signer/device-key.pem', 'signer/pin.json'] }, null, 2));
 }
