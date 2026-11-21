@@ -1,13 +1,14 @@
 import assert from 'node:assert/strict';
 import { execFile, execFileSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, rmSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { test } from 'node:test';
 import { promisify } from 'node:util';
 import { readJson } from '../lib/fixtures.mjs';
-import { ARCHIVES_PIN, CACHE, prepareContracts, prepareSubject, verifyContracts } from '../lib/pins.mjs';
+import { ARCHIVES_PIN, CACHE, SUBJECTS_PIN, prepareContracts, prepareSubject, verifyContracts } from '../lib/pins.mjs';
 import { stage1Subject } from '../lib/stage1-subject.mjs';
+import { instantiateQuickstart } from '../lib/quickstart.mjs';
 
 const runCLI = promisify(execFile);
 
@@ -15,6 +16,16 @@ test('Cooperative admission, owner offer and brokered member receipts agree with
   const hq = prepareSubject('hq', ARCHIVES_PIN['hq-t21'], 'hq-t21');
   const contracts = prepareContracts(readJson(hq, 'governance/soul-contracts.json'), 'contracts-t21');
   await checkReceipts(t, hq, contracts);
+});
+
+test('the pinned ordinary Souls CLI refuses protected on cooperative HQ before launch and accepts cooperative', { timeout: 120_000 }, async (t) => {
+  const hq = prepareSubject('hq', ARCHIVES_PIN['hq-t21'], 'hq-t21');
+  const contracts = prepareContracts(readJson(hq, 'governance/soul-contracts.json'), 'contracts-t21');
+  const runtimeArchive = ARCHIVES_PIN['runtime-profile-t21'];
+  const runtimePin = { ...SUBJECTS_PIN.subjects.runtime, commit: runtimeArchive.commit, entry: 'bin/agent-bot-souls.mjs' };
+  const runtime = prepareSubject('runtime', runtimePin, 'runtime-profile-t21');
+  t.diagnostic(`Ordinary CLI archive: true-line/agent-bot-souls ${runtimeArchive.commit} (${runtimeArchive.sha256}); HQ fixture: ${ARCHIVES_PIN['hq-t21'].commit}.`);
+  await assertCliProfileBoundary(t, hq, contracts, runtime, { bundledBroker: false });
 });
 
 const { SOUL_T21_HQ_TAR: archive, SOUL_T21_HQ_SHA256: sha256, SOUL_T21_HQ_COMMIT: commit } = process.env;
@@ -33,7 +44,110 @@ test('Darwin archive serves cooperative T21 receipts through its release-pinned 
     const contracts = join(hq, 'vendor/soul-contracts');
     verifyContracts(contracts, readJson(hq, 'governance/soul-contracts.json'));
     await checkReceipts(t, hq, contracts, true);
+    const runtimeArchive = ARCHIVES_PIN['runtime-profile-t21'];
+    const runtimePin = { ...SUBJECTS_PIN.subjects.runtime, commit: runtimeArchive.commit, entry: 'bin/agent-bot-souls.mjs' };
+    await assertCliProfileBoundary(t, hq, contracts, prepareSubject('runtime', runtimePin, 'runtime-profile-t21'), { bundledBroker: true });
   });
+
+async function assertCliProfileBoundary(t, hq, contracts, runtimeDir, { bundledBroker }) {
+  const fixture = readJson(contracts, 'fixtures/negative/hello.unsupported-profile.json').input;
+  const runCase = async (profile) => {
+    const instance = instantiateQuickstart({ runtimeDir });
+    const marker = join(instance.root, 'member-launches.log');
+    const exits = join(instance.root, 'member-exits.log');
+    const adapter = join(instance.contents, 'opt', 't21-marked-adapter.mjs');
+    let session;
+    try {
+      writeFileSync(adapter, `import { appendFileSync } from 'node:fs';
+import { pathToFileURL } from 'node:url';
+appendFileSync(process.env.T21_MEMBER_LAUNCH_MARKER, process.env.AGENT_BOT_SOULS_ROLE + '\\n', { mode: 0o600 });
+let exitRecorded = false;
+const recordExit = () => { if (!exitRecorded) { exitRecorded = true; appendFileSync(process.env.T21_MEMBER_EXIT_MARKER, process.env.AGENT_BOT_SOULS_ROLE + '\\n', { mode: 0o600 }); } };
+process.on('exit', recordExit);
+process.on('SIGTERM', () => { recordExit(); process.exit(0); });
+const runtimeBin = process.env.T21_RUNTIME_BIN;
+process.argv = [process.execPath, runtimeBin, 'fake-adapter'];
+await import(pathToFileURL(runtimeBin).href);
+`, { mode: 0o600 });
+      writeFileSync(join(instance.contents, 'host', 'adapters.json'), `${JSON.stringify({ 'fake-adapter': {
+        command: [process.execPath, adapter],
+        env: { T21_MEMBER_LAUNCH_MARKER: marker, T21_MEMBER_EXIT_MARKER: exits, T21_RUNTIME_BIN: instance.runtimeBin },
+      } }, null, 2)}\n`, { mode: 0o600 });
+
+      const subject = await stage1Subject(hq, contracts, fixture, { notices: true, bundledBroker });
+      session = await subject.open();
+      const privateHome = join(instance.root, '.t21-home');
+      const privateTmp = join(instance.root, '.t21-tmp');
+      mkdirSync(privateHome, { mode: 0o700 });
+      mkdirSync(privateTmp, { mode: 0o700 });
+      const child = runCLI(process.execPath, [instance.runtimeBin, 'chat', '--soul', instance.root, '--hq-home', session.hqHome, '--profile', profile], {
+        env: { HOME: privateHome, TMPDIR: privateTmp, PATH: '/usr/bin:/bin:/usr/sbin:/sbin', AGENT_BOT_SOUL_CONTRACTS: contracts },
+        timeout: 30_000, maxBuffer: 1 << 20,
+      });
+      child.child.stdin.end('Check the cooperative task list.\n/quit\n');
+      let result;
+      let failure;
+      try { result = await child; } catch (error) { failure = error; }
+      const stdout = result?.stdout ?? failure?.stdout ?? '';
+      const stderr = result?.stderr ?? failure?.stderr ?? '';
+      const events = stderr.split('\n').flatMap((line) => {
+        try { return [JSON.parse(line)]; } catch { return []; }
+      });
+      const { receipts } = readJson(session.hqHome, 'store.json');
+      const admissions = receipts.filter((row) => row.kind === 'hq.admission');
+      assert.equal(admissions.length, 1);
+      assert.equal(admissions[0].profile, 'managed-cooperative');
+      assert.equal(admissions[0].profile_in_force, 'managed-cooperative');
+      const store = readJson(session.hqHome, 'store.json');
+      const helloRows = store.tables.find(([name]) => name === 'hq-admission\0hellos')?.[1] ?? [];
+      assert.ok(helloRows.some(([requestId, row]) => requestId === admissions[0].request_id && row.result.decision_id === admissions[0].decision_id),
+        'the receipt must identify the actual Hello decision sent by this CLI');
+
+      if (profile === 'managed-protected') {
+        assert.equal(failure?.code, 1, stderr || 'protected CLI unexpectedly succeeded');
+        assert.match(stderr, /profile_insufficient/);
+        const refused = events.filter((event) => event.event === 'profile-refused');
+        assert.equal(refused.length, 1);
+        assert.equal(refused[0].code, 'profile_insufficient');
+        assert.equal(refused[0].source, 'local');
+        assert.equal(refused[0].requested_profile, 'managed-protected');
+        assert.equal(refused[0].granted_profile, 'managed-cooperative');
+        assert.equal(existsSync(marker), false, 'no adapter process may start after required protected admission is refused');
+        assert.equal(events.some((event) => event.event === 'member-started'), false);
+        assert.equal(receipts.filter((row) => ['hq.equip', 'hq.ready'].includes(row.kind)).length, 0);
+      } else {
+        assert.equal(failure, undefined, stderr || 'cooperative CLI failed');
+        assert.ok(events.some((event) => event.event === 'admitted' && event.profile === 'managed-cooperative'));
+        assert.ok(existsSync(marker), `cooperative control started no marked adapter: ${JSON.stringify({ eventKinds: events.map((event) => event.event), receiptKinds: receipts.map((row) => row.kind) })}`);
+        assert.match(stdout, /No waiting directives and no open tasks\./);
+        assert.deepEqual(readFileSync(marker, 'utf8').trim().split('\n'), ['lead']);
+        assert.deepEqual(readFileSync(exits, 'utf8').trim().split('\n'), ['lead'], 'CLI shutdown must close its launched adapter');
+        assert.equal(events.filter((event) => event.event === 'member-started').length, 1);
+        const equipped = receipts.filter((row) => row.kind === 'hq.equip');
+        const ready = receipts.filter((row) => row.kind === 'hq.ready');
+        assert.equal(equipped.length, 2);
+        assert.equal(ready.length, 1);
+        for (const row of [...equipped, ...ready]) assert.equal(row.profile, 'managed-cooperative');
+        const runtime = helloRows.flatMap(([, row]) => row.result.admitted_runtimes).find((item) => item.role === 'lead');
+        const cliBinds = receipts.filter((row) => row.kind === 'hq.bind' && row.runtime_id === runtime.runtime_id);
+        assert.ok(cliBinds.length >= 1, 'the CLI-launched lead should make a normal production broker bind');
+        for (const row of cliBinds) {
+          assert.equal(row.soul_id, fixture.soul_id);
+          assert.equal(row.member_id, runtime.member_id);
+          assert.equal(row.profile, 'managed-cooperative');
+          assert.equal(row.proof, 'hmac-sha256');
+        }
+        t.diagnostic('The cooperative CLI started its lead, completed a prompted turn, and made its own broker bind.');
+      }
+    } finally {
+      await session?.close();
+      rmSync(instance.root, { recursive: true, force: true });
+    }
+  };
+
+  await runCase('managed-protected');
+  await runCase('managed-cooperative');
+}
 
 async function checkReceipts(t, hq, contracts, bundledBroker = false) {
   const fixture = readJson(contracts, 'fixtures/positive/hello.first-start.json').input;
