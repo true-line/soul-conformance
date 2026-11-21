@@ -41,9 +41,29 @@ async function checkReceipts(t, hq, contracts, bundledBroker = false) {
   const protectedRequest = readJson(contracts, 'fixtures/negative/hello.unsupported-profile.json');
   // Run the published preference fixture unchanged, with its own accepted definition.
   const preferenceSubject = await stage1Subject(hq, contracts, protectedRequest.input, { notices: true, bundledBroker });
-  const preference = await preferenceSubject.open();
-  try { t.diagnostic(await assertProtectedPreference(preference, protectedRequest)); }
+  const preferenceHome = mkdtempSync(join(CACHE, 'preference-'));
+  t.after(() => rmSync(preferenceHome, { recursive: true, force: true }));
+  const preference = await preferenceSubject.open({ stateHome: preferenceHome });
+  let firstDecision;
+  try { firstDecision = await assertProtectedPreference(preference, protectedRequest); }
   finally { await preference.close(); }
+  const preferenceRestart = await preferenceSubject.open({ stateHome: preferenceHome });
+  try {
+    // A new connection must use a new request; admission decisions are bound
+    // to the original connection. Carry the prior epoch if HQ admitted it.
+    const restartedRequest = { ...protectedRequest, input: { ...protectedRequest.input,
+      request_id: 'req_t21_preference_restart',
+      ...(firstDecision.reply.ok ? { prior_installation_epoch: firstDecision.reply.result.installation_epoch } : {}),
+    } };
+    const repeatedDecision = await assertProtectedPreference(preferenceRestart, restartedRequest);
+    t.diagnostic(`${repeatedDecision.description} A new request after HQ restart retained the cooperative profile.`);
+  } finally { await preferenceRestart.close(); }
+  const preferenceReceipts = readJson(preferenceHome, 'store.json').receipts.filter(row =>
+    [protectedRequest.input.request_id, 'req_t21_preference_restart'].includes(row.request_id) &&
+    ['hq.admission', 'hq.hello.refused'].includes(row.kind));
+  assert.deepEqual(preferenceReceipts.map(row => row.request_id).sort(),
+    [protectedRequest.input.request_id, 'req_t21_preference_restart'].sort(), 'each preference decision must persist once');
+  assert.ok(preferenceReceipts.every(row => row.profile === profile), 'both decisions must name the cooperative profile');
 
   // The two fixture harnesses share this cooperative host account. No adapter is launched.
   const hello = { ...fixture, request_id: 'req_t21_coop', requested_profile: profile,
@@ -307,11 +327,11 @@ async function assertProtectedPreference(session, fixture) {
     assert.equal(record.kind, 'hq.admission');
     assert.equal(record.decision_id, reply.result.decision_id);
     assert.equal(record.profile_in_force, session.profile);
-    return 'Protected preference produced an explicit cooperative admission on both replies and one cooperative receipt.';
+    return { reply, description: 'Protected preference produced an explicit cooperative admission and one cooperative receipt.' };
   }
   assert.equal(record.kind, 'hq.hello.refused');
   assert.equal(record.code, fixture.expect.error);
-  return 'Protected preference was refused with profile_insufficient and recorded under the cooperative profile.';
+  return { reply, description: 'Protected preference was refused with profile_insufficient and recorded under the cooperative profile.' };
 }
 
 async function assertTaskReceipts(session, hello, admission) {
