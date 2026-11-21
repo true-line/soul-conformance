@@ -7,6 +7,40 @@ on:
 permissions:
   contents: read
 jobs:
+  macos-t21:
+    name: macOS cooperative T21 archive receipts
+    runs-on: macos-15
+    timeout-minutes: 10
+    env:
+      SOUL_T21_HQ_COMMIT: f07a9fb57cc0548a5293bff967ed7e0f0c3224e3
+      SOUL_T21_HQ_SHA256: 746281207ad2c853257b70d5a2d2b99e23e88c14604589fcab6473e5e609f84c
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '22'
+      - name: Build and verify the pinned Darwin HQ archive
+        env:
+          HOMEBREW_NO_AUTO_UPDATE: 1
+        run: |
+          set -euo pipefail
+          command -v gtar >/dev/null || brew install gnu-tar
+          git init -q "$RUNNER_TEMP/t21-hq"
+          git -C "$RUNNER_TEMP/t21-hq" -c credential.helper= fetch -q --no-tags --depth=1 https://github.com/true-line/agent-bot-hq.git "$SOUL_T21_HQ_COMMIT"
+          git -C "$RUNNER_TEMP/t21-hq" checkout -q --detach FETCH_HEAD
+          test "$(git -C "$RUNNER_TEMP/t21-hq" rev-parse HEAD)" = "$SOUL_T21_HQ_COMMIT"
+          (cd "$RUNNER_TEMP/t21-hq" && bash scripts/ci-build-darwin-artifact.sh "$SOUL_T21_HQ_COMMIT" "$RUNNER_TEMP/t21-hq.tar")
+          test -s "$RUNNER_TEMP/t21-hq.tar"
+          printf '%s  %s\n' "$SOUL_T21_HQ_SHA256" "$RUNNER_TEMP/t21-hq.tar" | shasum -a 256 --check
+      - name: Run cooperative T21 against the verified archive
+        env:
+          SOUL_T21_HQ_TAR: ${{ runner.temp }}/t21-hq.tar
+        run: |
+          set -euo pipefail
+          test -n "$SOUL_T21_HQ_COMMIT" && test -n "$SOUL_T21_HQ_SHA256" && test -s "$SOUL_T21_HQ_TAR"
+          node --test tests/t21-receipt-profile.test.mjs
   macos-paired-members:
     name: macOS signed members-plan lookup
     runs-on: macos-15
