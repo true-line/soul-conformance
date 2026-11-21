@@ -56,6 +56,7 @@ async function checkReceipts(t, hq, contracts, bundledBroker = false) {
   const handles = new Set();
   const bindings = new Set();
   const first = await subject.open({ stateHome });
+  const launchRuntimeIds = [];
   let admission, originalTask;
   try {
     const reply = await first.hello(hello);
@@ -64,7 +65,8 @@ async function checkReceipts(t, hq, contracts, bundledBroker = false) {
     assert.equal(admission.profile, profile);
     await assertEquipment(first, admission, handles, bindings);
     await assertReadiness(first, admission, hello);
-    await assertOwnerProfile(hq, first.hqHome);
+    await assertDedicatedLaunchUnavailable(hq, first, admission);
+    launchRuntimeIds.push(...admission.admitted_runtimes.map(runtime => runtime.runtime_id));
     originalTask = await assertTaskReceipts(first, hello, admission);
     assertBinds(first, admission, hello.soul_id, bundledBroker, 2);
   } finally { await first.close(); }
@@ -80,7 +82,8 @@ async function checkReceipts(t, hq, contracts, bundledBroker = false) {
     assert.equal(reply.result.lease_generation, admission.lease_generation + 1);
     await assertEquipment(restarted, reply.result, handles, bindings);
     await assertReadiness(restarted, reply.result, hello);
-    await assertOwnerProfile(hq, restarted.hqHome);
+    await assertDedicatedLaunchUnavailable(hq, restarted, reply.result);
+    launchRuntimeIds.push(...reply.result.admitted_runtimes.map(runtime => runtime.runtime_id));
     t.diagnostic('With two distinct fixture harnesses ready, owner status reported cooperative and the missing per-harness OS accounts before and after restart.');
     await finishRenewedTask(restarted, reply.result, hello.soul_id, originalTask);
     assertBinds(restarted, reply.result, hello.soul_id, bundledBroker, 1);
@@ -91,6 +94,15 @@ async function checkReceipts(t, hq, contracts, bundledBroker = false) {
 
   const { receipts } = readJson(stateHome, 'store.json');
   assert.equal(receipts.filter(row => row.kind === 'hq.stopped').length, 2);
+  assert.equal(new Set(launchRuntimeIds).size, 4, 'each admission must name two distinct new runtimes');
+  const refusals = receipts.filter(row => row.kind === 'hq.launch.refused');
+  assert.deepEqual(refusals.map(row => row.runtime_id).sort(), launchRuntimeIds.sort(),
+    'each launch request must retain exactly one refusal across restart and shutdown');
+  for (const row of refusals) {
+    assert.deepEqual([row.op, row.code, row.profile], ['launch', 'host.launch_unavailable', profile]);
+  }
+  assert.equal(receipts.filter(row => row.kind === 'hq.launch').length, 0);
+  t.diagnostic('In each generation the admitting entry point requested a dedicated launch for each of its two runtimes. No launch was reserved. All four cooperative refusal receipts persisted through shutdown.');
   for (const row of receipts) {
     assert.equal(row.profile, profile, `HQ audit receipt ${row.seq} (${row.kind})`);
   }
@@ -199,9 +211,16 @@ async function assertEquipment(session, admission, handles, bindings) {
   }
 }
 
-async function assertOwnerProfile(hq, home) {
-  const { stdout } = await runCLI(process.execPath, [join(hq, 'hq/main.mjs'), 'status', '--home', home, '--json'], { timeout: 10000 });
+async function assertDedicatedLaunchUnavailable(hq, session, admission) {
+  // A normal request on the same entry connection that admitted these runtimes.
+  for (const runtime of admission.admitted_runtimes) {
+    const result = await session.launch({ runtime_id: runtime.runtime_id, command: [process.execPath, '--version'], env: {} });
+    assert.equal(result.ok, false);
+    assert.equal(result.host_refusal?.code ?? result.refusal?.error, 'host.launch_unavailable');
+  }
+  const { stdout } = await runCLI(process.execPath, [join(hq, 'hq/main.mjs'), 'status', '--home', session.hqHome, '--json'], { timeout: 10000 });
   const status = JSON.parse(stdout);
+  assert.deepEqual(status.hq.launch.launches, [], 'neither request must leave a launch reservation');
   assert.equal(status.profile, 'managed-cooperative');
   assert.ok(status.hq.profileReasons.some(reason => reason.includes('(D7)') && /share one account|no OS account per harness/i.test(reason)),
     'owner status must disclose the missing per-harness account boundary');
