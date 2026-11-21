@@ -3,7 +3,20 @@ import { mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from 'node
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
-import { assertScratchSignerAbsent, requireDedicatedMac, verifyContinuity, waitForStatus } from '../suites/T02-key-boundary/paired-proof.mjs';
+import { assertScratchSignerAbsent, observationMetadata, requireDedicatedMac, verifyContinuity, waitForStatus } from '../suites/T02-key-boundary/paired-proof.mjs';
+
+test('the report records only a model identifier, Node version and verified archive digest', () => {
+  const digest = 'a'.repeat(64);
+  assert.deepEqual(observationMetadata('VirtualMac2,1', 'v24.19.0', digest), {
+    hardware_model: 'VirtualMac2,1', node_version: 'v24.19.0', hq_archive_sha256: digest,
+  });
+  for (const model of ['Mac14,10', 'MacBookPro18,3']) assert.equal(observationMetadata(model, 'v24.19.0', digest).hardware_model, model);
+  assert.throws(() => observationMetadata('Mac model with spaces', 'v24.19.0', digest), /model/);
+  assert.throws(() => observationMetadata('Mac16-13', 'v24.19.0', digest), /model/);
+  assert.throws(() => observationMetadata('C02ABC12345', 'v24.19.0', digest), /model/);
+  assert.throws(() => observationMetadata('Mac14,12', 'node 24', digest), /Node/);
+  assert.throws(() => observationMetadata('Mac14,12', 'v24.19.0', 'a'.repeat(63)), /digest/);
+});
 
 test('the paired observation requires Apple Silicon macOS and the dedicated role', () => {
   const role = { platform: 'darwin', arch: 'arm64', account: { username: '_agent-bot-hq' } };
