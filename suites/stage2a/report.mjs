@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { validateStage2aGate } from '../../lib/stage2a-gate.mjs';
 
 export function hostReport({started, suite, platform, environment, os, arch, release, os_version, archive_sha256, meta, policy, observations}) {
   assert.equal(observations.length, 2);
@@ -19,11 +20,12 @@ export function hostReport({started, suite, platform, environment, os, arch, rel
     assert.equal(o.soul_id, first.soul_id);
     assert.equal(o.definition_digest, first.definition_digest);
   }
-  return {
+  return validateStage2aGate({
     report:'soul-conformance/stage2a-host', report_version:1, stage:'2a', outcome:'incomplete',
     started_at:started, generated_at:new Date().toISOString(), suite_revision:suite, platform_main:platform,
     host:{os, arch, release, os_version, environment, node:process.version},
     enforcement_profile:{in_force:first.profile},
+    execution_scope:{hq_started_soul:false, entrypoint:null, note:'This fixture measured HQ protocol and receipts directly; it did not start a Soul through agent-bot-souls run.'},
     definition_revision:{soul_id:first.soul_id, definition_digest:first.definition_digest},
     policy_digest:{value:policy, source:'packaged plugin allowlist only'},
     dependency_versions:{hq:{commit:meta.hq_commit,archive_sha256}, contracts:{commit:meta.contracts_commit, digest:meta.contracts_digest},
@@ -39,5 +41,5 @@ export function hostReport({started, suite, platform, environment, os, arch, rel
       'https://github.com/true-line/agent-bot-hq/issues/56','https://github.com/true-line/agent-bot-platform/issues/68'],
     coverage_limitations:[...(platform ? [] : ['Offline run; fresh Platform main was not fetched on this host.']), 'Two separate packaged HQ processes used a test-only enrolled-device status and a fresh private fixture store.',
       'No hardware signature, installed adapter version, provider call or protected host qualification was measured.'],
-  };
+  });
 }

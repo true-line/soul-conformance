@@ -1,6 +1,8 @@
 # Changelog
 
 ## Unreleased
+- Add scoped Stage 2a cooperative host evidence and paired T02/T21 observers, while keeping the protected stage gate explicitly incomplete until declared-host acceptance evidence exists.
+- Document the exact boundary between current Stage 2a supporting checks and the T01/T02/T03/T21 release requirements.
 - Replace the `hello.soul` placeholder with a runnable, credential-free package and fail-closed quickstart evidence through the pinned production HQ and Soul runtime.
 - Consolidate independent T14 work into the original harness, preserving its fixture loader, newer-peer fallback, positive capability control and implementation mutation tests.
 - Verify archive hashes and every cached source byte/mode before import; enforce mandatory case inventory and exact correlated refusal/no-decision checks.

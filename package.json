@@ -3,7 +3,7 @@
   "version": "0.2.0",
   "private": true,
   "license": "MIT",
-  "description": "Independent Soul conformance: Stage 0 and Stage 1 evidence gates",
+  "description": "Independent Soul conformance suites and scoped evidence runners; protected Stage 2a remains open",
   "type": "module",
   "engines": {
     "node": ">=20"

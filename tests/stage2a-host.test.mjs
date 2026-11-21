@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { hostReport } from '../suites/stage2a/report.mjs';
+import { validateStage2aGate, STAGE2A_PROFILES } from '../lib/stage2a-gate.mjs';
 
 function fixture() {
   return { started:new Date().toISOString(), suite:{commit:'1'.repeat(40)}, platform:null,
@@ -22,8 +23,37 @@ test('records only observed positive aggregate counts from both processes; full 
   assert.deepEqual(r.checks[0].observed.map(o => o.cooperative_member_task_receipts), [2,2]);
   assert.deepEqual(r.checks[0].observed.map(o => o.task_state_retained_after_restart), [null,true]);
   assert.equal(r.enforcement_profile.in_force, 'managed-cooperative');
+  assert.deepEqual(r.execution_scope, {hq_started_soul:false, entrypoint:null,
+    note:'This fixture measured HQ protocol and receipts directly; it did not start a Soul through agent-bot-souls run.'});
   assert.equal(r.platform_main, null);
   assert.doesNotMatch(JSON.stringify(r), /private-fixture/);
+});
+
+test('self-reported HQ launch fields cannot certify Stage 2a', () => {
+  const run = (id) => ({id, result:'pass', profile:STAGE2A_PROFILES[id], execution:{
+    started_by:'agent-bot-hq', entrypoint:'agent-bot-souls run', runner_commit:'a'.repeat(40),
+    expected_argv_sha256:'b'.repeat(64),
+    hq_launch_receipt:{kind:'hq.launch', launch_id:`launch-${id}`, soul_id:'fixture-soul',
+      argv0:'agent-bot-souls', argv_sha256:'b'.repeat(64)},
+  }, soul_id:'fixture-soul'});
+  const report = {stage:'2a', outcome:'pass', checks:Object.keys(STAGE2A_PROFILES).map(run)};
+  assert.throws(() => validateStage2aGate(report), /authenticated Stage 2a launch and host evidence verification is not implemented/);
+
+  for (const change of [
+    (check) => { delete check.execution; },
+    (check) => { check.execution.started_by = 'vendor-cli'; },
+    (check) => { check.execution.entrypoint = 'codex'; },
+    (check) => { check.execution.hq_launch_receipt.kind = 'fixture'; },
+    (check) => { check.execution.hq_launch_receipt.argv0 = '/usr/local/bin/codex'; },
+    (check) => { check.execution.expected_argv_sha256 = 'c'.repeat(64); },
+    (check) => { check.execution.hq_launch_receipt.soul_id = 'other-soul'; },
+    (check) => { check.profile = 'unmanaged'; },
+  ]) {
+    const invalid = structuredClone(report);
+    change(invalid.checks[0]);
+    assert.throws(() => validateStage2aGate(invalid));
+  }
+  assert.throws(() => validateStage2aGate({stage:'2a', outcome:'pass', checks:[run('T01')]}), /T01, T02, T03 and T21/);
 });
 
 for (const [reason, change] of [
