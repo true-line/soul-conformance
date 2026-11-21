@@ -56,6 +56,7 @@ async function checkReceipts(t, hq, contracts, bundledBroker = false) {
   const handles = new Set();
   const bindings = new Set();
   const first = await subject.open({ stateHome });
+  const launchRuntimeIds = [];
   let admission, originalTask;
   try {
     const reply = await first.hello(hello);
@@ -65,6 +66,7 @@ async function checkReceipts(t, hq, contracts, bundledBroker = false) {
     await assertEquipment(first, admission, handles, bindings);
     await assertReadiness(first, admission, hello);
     await assertDedicatedLaunchUnavailable(hq, first, admission);
+    launchRuntimeIds.push(...admission.admitted_runtimes.map(runtime => runtime.runtime_id));
     originalTask = await assertTaskReceipts(first, hello, admission);
     assertBinds(first, admission, hello.soul_id, bundledBroker, 2);
   } finally { await first.close(); }
@@ -81,7 +83,7 @@ async function checkReceipts(t, hq, contracts, bundledBroker = false) {
     await assertEquipment(restarted, reply.result, handles, bindings);
     await assertReadiness(restarted, reply.result, hello);
     await assertDedicatedLaunchUnavailable(hq, restarted, reply.result);
-    t.diagnostic('Both admitted members requested their own dedicated launch in both generations. HQ recorded four cooperative refusals and reserved no launches.');
+    launchRuntimeIds.push(...reply.result.admitted_runtimes.map(runtime => runtime.runtime_id));
     t.diagnostic('With two distinct fixture harnesses ready, owner status reported cooperative and the missing per-harness OS accounts before and after restart.');
     await finishRenewedTask(restarted, reply.result, hello.soul_id, originalTask);
     assertBinds(restarted, reply.result, hello.soul_id, bundledBroker, 1);
@@ -92,6 +94,15 @@ async function checkReceipts(t, hq, contracts, bundledBroker = false) {
 
   const { receipts } = readJson(stateHome, 'store.json');
   assert.equal(receipts.filter(row => row.kind === 'hq.stopped').length, 2);
+  assert.equal(new Set(launchRuntimeIds).size, 4, 'each admission must name two distinct new runtimes');
+  const refusals = receipts.filter(row => row.kind === 'hq.launch.refused');
+  assert.deepEqual(refusals.map(row => row.runtime_id).sort(), launchRuntimeIds.sort(),
+    'each launch request must retain exactly one refusal across restart and shutdown');
+  for (const row of refusals) {
+    assert.deepEqual([row.op, row.code, row.profile], ['launch', 'host.launch_unavailable', profile]);
+  }
+  assert.equal(receipts.filter(row => row.kind === 'hq.launch').length, 0);
+  t.diagnostic('In each generation the admitting entry point requested a dedicated launch for each of its two runtimes. No launch was reserved. All four cooperative refusal receipts persisted through shutdown.');
   for (const row of receipts) {
     assert.equal(row.profile, profile, `HQ audit receipt ${row.seq} (${row.kind})`);
   }
@@ -207,13 +218,6 @@ async function assertDedicatedLaunchUnavailable(hq, session, admission) {
     assert.equal(result.ok, false);
     assert.equal(result.host_refusal?.code ?? result.refusal?.error, 'host.launch_unavailable');
   }
-  const { receipts } = readJson(session.hqHome, 'store.json');
-  for (const runtime of admission.admitted_runtimes) {
-    const rows = receipts.filter(row => row.kind === 'hq.launch.refused' && row.runtime_id === runtime.runtime_id);
-    assert.deepEqual(rows.map(row => [row.op, row.code, row.profile]),
-      [['launch', 'host.launch_unavailable', 'managed-cooperative']]);
-  }
-  assert.equal(receipts.filter(row => row.kind === 'hq.launch').length, 0);
   const { stdout } = await runCLI(process.execPath, [join(hq, 'hq/main.mjs'), 'status', '--home', session.hqHome, '--json'], { timeout: 10000 });
   const status = JSON.parse(stdout);
   assert.deepEqual(status.hq.launch.launches, [], 'neither request must leave a launch reservation');
