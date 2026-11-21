@@ -9,9 +9,13 @@ export function hostReport({started, suite, platform, environment, os, arch, rel
     assert.equal(o.profile, 'managed-cooperative');
     assert.equal(o.pass, i+1);
     assert.equal(o.account_count, 2);
-    assert.equal(o.binds, 2);
+    assert.equal(o.binds, 4);
     assert.equal(o.directives, 2);
-    assert.equal(o.persisted_receipts, (i+1)*2);
+    assert.equal(o.persisted_receipts, (i+1)*4);
+    assert.equal(o.task_offer_receipts, 1);
+    assert.equal(o.cooperative_task_receipts, 2);
+    assert.equal(o.task_receipts_replayed, 2);
+    assert.equal(o.task_state_retained, i === 0 ? null : true);
     assert.equal(o.soul_id, first.soul_id);
     assert.equal(o.definition_digest, first.definition_digest);
   }
@@ -25,7 +29,11 @@ export function hostReport({started, suite, platform, environment, os, arch, rel
     dependency_versions:{hq:{commit:meta.hq_commit,archive_sha256}, contracts:{commit:meta.contracts_commit, digest:meta.contracts_digest},
       broker:os === 'darwin' ? {name:meta.broker.name,version:meta.broker.version,sha256:meta.broker.sha256,source_commit:meta.broker.source_commit} : {source:'archived HQ reference broker'}},
     adapter_versions:{},
-    checks:[{id:'T01-positive',result:'pass',observed:observations.map(o => ({pass:o.pass, distinct_harness_uids:o.account_count, own_account_binds:o.binds, directive_reads:o.directives, persisted_cooperative_receipts:o.persisted_receipts}))},
+    checks:[{id:'T01-positive',result:'pass',observed:observations.map(o => ({pass:o.pass,
+      distinct_harness_uids:o.account_count, own_account_binds:o.binds, directive_reads:o.directives,
+      persisted_cooperative_bind_receipts:o.persisted_receipts, owner_task_offer_receipts:o.task_offer_receipts,
+      cooperative_member_task_receipts:o.cooperative_task_receipts, idempotent_task_receipt_replays:o.task_receipts_replayed,
+      task_state_retained_after_restart:o.task_state_retained}))},
       ...['T01','T02','T03','T21'].map(id => ({id,result:'not-qualified'}))],
     evidence_references:['https://github.com/true-line/agent-bot-hq/blob/' + meta.hq_commit + '/hq/admission.mjs',
       'https://github.com/true-line/agent-bot-hq/issues/56','https://github.com/true-line/agent-bot-platform/issues/68'],

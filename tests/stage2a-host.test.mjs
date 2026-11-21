@@ -7,7 +7,8 @@ function fixture() {
     os:'darwin', environment:'macos-vm', arch:'arm64', release:'test', os_version:'test', archive_sha256:'a'.repeat(64),
     policy:'sha256:' + 'b'.repeat(64), meta:{hq_commit:'2'.repeat(40),contracts_commit:'3'.repeat(40),
       contracts_digest:'sha256:'+'c'.repeat(64),broker:{name:'agent-comms',version:'1.0.0',source_commit:'4'.repeat(40),sha256:'sha256:'+'d'.repeat(64)}},
-    observations:[1,2].map(pass => ({pass, account_count:2, binds:2, directives:2, persisted_receipts:pass*2,
+    observations:[1,2].map(pass => ({pass, account_count:2, binds:4, directives:2, persisted_receipts:pass*4,
+      task_offer_receipts:1, cooperative_task_receipts:2, task_receipts_replayed:2, task_state_retained:pass===1?null:true,
       profile:'managed-cooperative', soul_id:'fixture-soul', definition_digest:'sha256:'+'e'.repeat(64),
       account:'private-fixture-name',channel_binding:'private-fixture-value'})) };
 }
@@ -16,7 +17,10 @@ test('records only observed positive aggregate counts from both processes; full 
   const r = hostReport(fixture());
   assert.equal(r.outcome, 'incomplete');
   assert.deepEqual(r.checks.map(x => x.result), ['pass', ...Array(4).fill('not-qualified')]);
-  assert.deepEqual(r.checks[0].observed.map(o => o.persisted_cooperative_receipts), [2,4]);
+  assert.deepEqual(r.checks[0].observed.map(o => o.own_account_binds), [4,4]);
+  assert.deepEqual(r.checks[0].observed.map(o => o.persisted_cooperative_bind_receipts), [4,8]);
+  assert.deepEqual(r.checks[0].observed.map(o => o.cooperative_member_task_receipts), [2,2]);
+  assert.deepEqual(r.checks[0].observed.map(o => o.task_state_retained_after_restart), [null,true]);
   assert.equal(r.enforcement_profile.in_force, 'managed-cooperative');
   assert.equal(r.platform_main, null);
   assert.doesNotMatch(JSON.stringify(r), /private-fixture/);
@@ -28,6 +32,9 @@ for (const [reason, change] of [
   ['missing second UID bind', x => x.observations[1].binds--],
   ['missing first read', x => x.observations[0].directives--],
   ['lost first receipt after restart', x => x.observations[1].persisted_receipts--],
+  ['missing cooperative task receipt', x => x.observations[1].cooperative_task_receipts--],
+  ['task receipt did not replay after restart', x => x.observations[1].task_receipts_replayed--],
+  ['task state missing after restart', x => x.observations[1].task_state_retained = null],
   ['differing definition', x => x.observations[1].definition_digest = 'sha256:'+'9'.repeat(64)],
   ['wrong profile', x => x.observations[0].profile = 'managed-protected'],
 ]) {
