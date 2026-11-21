@@ -47,9 +47,9 @@ jq -e --arg digest "$archive_sha" --arg hq "$hq" '
   and .dependency_versions.broker.source == "archived HQ reference broker"
   and (.checks | map(select(.id == "T01-positive")) | map([.result, .observed]))
     == [["pass", [
-      {pass:1,distinct_harness_uids:2,own_account_binds:4,directive_reads:2,persisted_cooperative_bind_receipts:4,
+      {pass:1,distinct_harness_uids:2,own_account_binds:4,copied_binding_refusals:2,persisted_copied_binding_refusals:2,directive_reads:2,persisted_cooperative_bind_receipts:4,
        owner_task_offer_receipts:1,cooperative_member_task_receipts:2,idempotent_task_receipt_replays:2,task_state_retained_after_restart:null},
-      {pass:2,distinct_harness_uids:2,own_account_binds:4,directive_reads:2,persisted_cooperative_bind_receipts:8,
+      {pass:2,distinct_harness_uids:2,own_account_binds:4,copied_binding_refusals:2,persisted_copied_binding_refusals:4,directive_reads:2,persisted_cooperative_bind_receipts:8,
        owner_task_offer_receipts:1,cooperative_member_task_receipts:2,idempotent_task_receipt_replays:2,task_state_retained_after_restart:true}
     ]]]
   and ([.checks[] | select(.result == "not-qualified") | .id] == ["T01","T02","T03","T21"])
