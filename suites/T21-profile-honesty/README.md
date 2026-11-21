@@ -15,6 +15,18 @@ restarts, a new request carries the prior epoch when applicable; both decisions
 and their cooperative receipt labels must persist across shutdown. The
 credential test below separately exercises a mandatory protected claim.
 
+The suite also invokes the ordinary pinned `agent-bot-souls chat` CLI with
+`--profile managed-protected` against the cooperative HQ admission socket. HQ's
+weaker cooperative admission is persisted, then the CLI reports
+`profile_insufficient` locally and refuses before any adapter starts or any
+Equip/Ready receipt is written. A separate verified Souls #22 archive pin
+provides this explicit CLI profile behavior; the existing runtime archive pin
+is unchanged. The same CLI then runs with `--profile managed-cooperative`,
+starts the fixture lead, completes a fake-adapter turn and makes its own
+cooperative broker bind. The Darwin archive case runs that bind through its
+production-pinned broker. This remains a profile-honesty check, not protected
+host enforcement evidence.
+
 The Soul entry point also equips the admitted lead and specialist over its
 admission socket. Each receives its own stable grant handle and channel binding.
 This fixture provisions no credential references or approved destinations. The
@@ -37,8 +49,9 @@ configured, each request returns `host.launch_unavailable` and produces one
 `managed-cooperative` refusal receipt. Owner status shows no launch reservation.
 This exercises the configured launch boundary without starting an agent.
 Each runtime has one persisted cooperative readiness
-receipt. Both members use the same OS account. This fixture does not launch
-either adapter or provision credentials.
+receipt. Both members use the same OS account. The socket-driven receipt
+fixture launches neither adapter and provisions no credentials; the separate
+CLI cooperative control launches only its fake lead adapter.
 Each successful connection before and after restart must have one cooperative
 bind receipt identifying its runtime, member, Soul and proof method. The Darwin
 archive exercises the production broker's keyed challenge on each new connection.

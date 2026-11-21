@@ -140,8 +140,8 @@ await import(pathToFileURL(runtimeBin).href);
         t.diagnostic('The cooperative CLI started its lead, completed a prompted turn, and made its own broker bind.');
       }
     } finally {
-      await session?.close();
-      rmSync(instance.root, { recursive: true, force: true });
+      try { await session?.close(); }
+      finally { rmSync(instance.root, { recursive: true, force: true }); }
     }
   };
 
