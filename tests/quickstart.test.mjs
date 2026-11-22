@@ -2,18 +2,22 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { readFileSync, rmSync } from 'node:fs';
+import { linkSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { readJson } from '../lib/fixtures.mjs';
 import { prepareContracts, prepareSubject } from '../lib/pins.mjs';
 import { QUICKSTART_CHECK_IDS, QUICKSTART_TEMPLATE, instantiateQuickstart, runQuickstart, templateSnapshot, validateQuickstartResult } from '../lib/quickstart.mjs';
 import { buildQuickstartReport, validateQuickstartReport } from '../lib/quickstart-report.mjs';
 import { stage1Subject } from '../lib/stage1-subject.mjs';
+import { checkAnswer } from '../templates/hello.soul/Contents/opt/quickstart-check.mjs';
 
 test('checked-in hello.soul is a credential-free two-member package with a seeded task', () => {
   const snapshot = templateSnapshot();
   assert.ok(snapshot.files >= 8);
-  for (const required of ['Contents/SoulInfo.json', 'Contents/SoulLock.json', 'Contents/opt/quickstart-adapter.mjs', 'Contents/primitives/quickstart-task.json', 'Contents/workspaces/scratch/check.mjs']) assert.ok(snapshot.paths.includes(required));
+  for (const required of ['Contents/SoulInfo.json', 'Contents/SoulLock.json', 'Contents/opt/quickstart-adapter.mjs', 'Contents/opt/quickstart-check.mjs', 'Contents/primitives/quickstart-task.json']) assert.ok(snapshot.paths.includes(required));
+  assert.deepEqual(snapshot.paths.filter((path) => path.startsWith('Contents/workspaces/')), [
+    'Contents/workspaces/scratch/answer.txt', 'Contents/workspaces/scratch/issue.md',
+  ]);
   assert.ok(!snapshot.paths.some((path) => path.startsWith('Contents/host/')), 'host state is instantiated, not shipped');
   const info = JSON.parse(readFileSync(join(QUICKSTART_TEMPLATE, 'Contents', 'SoulInfo.json')));
   assert.deepEqual(info.members.map(({ member_id: id, role }) => [id, role]), [['m_lead', 'lead'], ['m_spec', 'specialist']]);
@@ -29,6 +33,32 @@ test('quickstart keeps its Unix socket path short when the checkout path is long
   } finally {
     rmSync(instance.root, { recursive: true, force: true });
   }
+});
+
+test('the checker and adapter refuse linked workspace inputs', async (t) => {
+  const instance = instantiateQuickstart({ runtimeDir: prepareSubject('runtime') });
+  t.after(() => rmSync(instance.root, { recursive: true, force: true }));
+  const answer = join(instance.workspace, 'answer.txt');
+  const outside = join(instance.contents, 'outside.txt');
+  writeFileSync(outside, 'status=fixed\n');
+  assert.throws(() => checkAnswer(answer), { code: 'ERR_ASSERTION' });
+
+  const adapter = join(instance.contents, 'opt', 'quickstart-adapter.mjs');
+  const runAdapter = () => promisify(execFile)(process.execPath, [adapter, instance.runtimeBin, instance.workspace], {
+    env: { AGENT_BOT_SOULS_ROLE: 'specialist' },
+    timeout: 5_000,
+  });
+  rmSync(answer);
+  symlinkSync(outside, answer);
+  assert.throws(() => checkAnswer(answer), { code: 'ELOOP' });
+  writeFileSync(outside, 'status=broken\n');
+  await assert.rejects(runAdapter(), /ELOOP/);
+  assert.equal(readFileSync(outside, 'utf8'), 'status=broken\n');
+  rmSync(answer);
+  linkSync(outside, answer);
+  assert.throws(() => checkAnswer(answer), /regular file with one link/);
+  await assert.rejects(runAdapter(), /regular file with one link/);
+  assert.equal(readFileSync(outside, 'utf8'), 'status=broken\n');
 });
 
 test('hello.soul quickstart exercises the pinned production runtime entry point', { timeout: 120_000 }, async () => {
@@ -56,6 +86,7 @@ test('chat CLI completes the seeded task with the specialist artifact as evidenc
   const taskId = offer.result.task_id;
   const answer = join(instance.workspace, 'answer.txt');
   assert.equal(readFileSync(answer, 'utf8'), 'status=broken\n');
+  writeFileSync(join(instance.workspace, 'check.mjs'), 'throw new Error("scratch code must never execute");\n');
   const chat = promisify(execFile)(process.execPath, [instance.runtimeBin, 'chat', '--soul', instance.root, '--hq-home', session.hqHome], {
     env: { HOME: instance.root, PATH: process.env.PATH, AGENT_BOT_SOUL_CONTRACTS: contracts },
     timeout: 30_000,
