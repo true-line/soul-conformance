@@ -1,5 +1,10 @@
 # Stage 2a host runner
 
+The separate [independent Q observation session](qualification-session.md)
+defines the source-pinned executable and A-owned wire interface for physical
+Stage 2a qualification. The cooperative host fixture below does not use that
+session and does not close the protected gates.
+
 Run the cooperative caller and task-path check on the selected machine. The command starts two short-lived HQ processes in sequence using the same new private fixture directory. Before each account binds its own runtime, it tries the other account's copied runtime ID and channel binding on its own broker endpoint. HQ must refuse both copied bindings with `caller_mismatch` before any task operation, in both processes. Each account then binds its own admitted runtime and reads directives through its normal broker endpoint in both processes. The owner offers one task to the admitted Soul. The lead accepts it and the specialist proposes fixture evidence through their separate account-owned broker endpoints. After HQ restarts, both members read the retained task and redeliver their original operations over fresh bound connections. The runner compares each reply payload with its original cooperative receipt and confirms the audit store still has exactly one owner offer and one member receipt per operation. Each member binds twice per HQ process: once before the operation and again on a fresh connection to replay it. Each process produces four successful bind receipts and two refusal receipts; the report also records the cumulative counts after restart.
 
 ## Before running
