@@ -36,9 +36,10 @@ test_plan_sha256,suite_revision,q_uid,q_gid,deadline_at,path_roots,ps_sha256`.
 `session_id` is 32 lowercase hex; challenge is 32 random bytes as unpadded
 base64url; profile is `managed-protected` or `managed-cooperative`; deadline is
 UTC RFC 3339, at most one hour ahead. `path_roots` is 1–16 absolute, canonical,
-owner-reviewed directory paths, each at most 512 ASCII characters. A derives
-them from the signed test plan. Q verifies its UID/GID, the `/bin/ps` digest,
-root existence and the deadline. Q's `ready` response has exactly `schema,
+owner-reviewed canonical directory paths, each at most 512 ASCII characters;
+symlinked roots are refused. A derives them from the signed test plan. Q
+verifies its UID/GID, the `/bin/ps` digest, root existence and the deadline.
+Q's `ready` response has exactly `schema,
 kind,session_id,challenge_sha256,sequence:0,pid,uid,gid,source_sha256,
 captured_at`. `source_sha256` and self-reported identity are corroborative only;
 A measures the actual installed files and peer independently.
@@ -58,7 +59,8 @@ escape. A parent removed during cleanup yields a bounded absent observation.
 positive cleanup claim on an unobservable path.
 The response is `observation` with session/challenge/sequence,
 `request_sha256` over the canonical `observe` JSON payload bytes, timestamp,
-gate/phase/event ID, and raw bounded process and path metadata. A schedules
+gate/phase/event ID, the exact optional `stimulus_ref` echo, and raw bounded
+process and path metadata. A refuses a missing or changed echo, schedules
 the expected gates/phases/events, authenticates ACP capture separately, and
 independently corroborates host state. `stimulus_ref` is not authoritative by
 itself.

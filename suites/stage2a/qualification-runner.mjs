@@ -2,7 +2,7 @@
 // Independent, read-only Q observer. A owns the listener, plan, corroboration and verdict.
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { lstatSync, readFileSync, realpathSync, statSync } from 'node:fs';
+import { lstatSync, readFileSync, realpathSync } from 'node:fs';
 import { createConnection } from 'node:net';
 import { isAbsolute, normalize, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -124,8 +124,8 @@ function begin(value) {
   if (process.getuid() !== value.q_uid || process.getgid() !== value.q_gid) fail('Q identity mismatch');
   if (hash(readFileSync('/bin/ps')) !== value.ps_sha256) fail('observer digest mismatch');
   const roots = value.path_roots.map(path => {
-    if (!statSync(path).isDirectory()) fail('root is not a directory');
-    return { path, real:realpathSync(path) };
+    if (!lstatSync(path).isDirectory() || realpathSync(path) !== path) fail('root is not a canonical directory');
+    return { path, real:path };
   });
   return { deadline, roots, challengeHash:hash(Buffer.from(value.challenge_base64url,'base64url')) };
 }
@@ -239,7 +239,8 @@ async function main() {
         const paths = request.paths.map(p => probePath(p,state.roots));
         const response = {schema:SCHEMA,kind:'observation',session_id:session,challenge_sha256,
           sequence,request_sha256:hash(bytes),captured_at:new Date().toISOString(),
-          gate:request.gate,phase:request.phase,event_id:request.event_id,processes,paths};
+          gate:request.gate,phase:request.phase,event_id:request.event_id,processes,paths,
+          ...(request.stimulus_ref === undefined ? {} : {stimulus_ref:request.stimulus_ref})};
         transcript.update(await channel.send(response));
       }
       sequence++;

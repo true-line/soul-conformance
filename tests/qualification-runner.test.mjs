@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { createHash, randomBytes } from 'node:crypto';
-import { chmodSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { chmodSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -43,7 +43,7 @@ class Reader {
 }
 
 async function session(run) {
-  const dir = mkdtempSync(join(tmpdir(),'q-observer-'));
+  const dir = realpathSync(mkdtempSync(join(tmpdir(),'q-observer-')));
   const file = join(dir,'sample');
   const socketPath = join(dir,'a.sock');
   writeFileSync(file,'sample');
@@ -83,11 +83,13 @@ test('returns bounded process and lstat observations with transcript digest, no 
     assert.equal(ready.uid,process.getuid());
     assert.equal(ready.source_sha256,sha(readFileSync(runner)));
     const request = {schema,kind:'observe',session_id:begin.session_id,sequence:1,gate:'T02',
-      phase:'file_probe',event_id:'sample_1',processes:[{role:'q',pid:child.pid}],paths:[{role:'sample',path:file}]};
+      phase:'file_probe',event_id:'sample_1',processes:[{role:'q',pid:child.pid}],paths:[{role:'sample',path:file}],
+      stimulus_ref:{uri:'capture:sample-1',sha256:sha('capture bytes')}};
     socket.write(wire(request));
     const observed = await reader.read();
     assert.equal(observed.kind,'observation');
     assert.equal(observed.request_sha256,sha(wire(request).subarray(4)));
+    assert.deepEqual(observed.stimulus_ref,request.stimulus_ref);
     assert.match(observed.processes[0].stdout, new RegExp(String(child.pid)));
     assert.equal(observed.paths[0].exists,true);
     assert.equal(observed.paths[0].type,'file');
@@ -97,6 +99,20 @@ test('returns bounded process and lstat observations with transcript digest, no 
     assert.equal(finished.kind,'finished');
     assert.equal(finished.observation_count,1);
     assert.equal(finished.observations_sha256,sha(wire(observed)));
+    assert.equal((await exit)[0],0);
+  });
+});
+
+test('omits the ACP reference only when observe supplied none', async () => {
+  await session(async ({begin,socket,reader,exit}) => {
+    socket.write(wire(begin));
+    await reader.read();
+    socket.write(wire({schema,kind:'observe',session_id:begin.session_id,sequence:1,gate:'T03',
+      phase:'route_probe',event_id:'no_capture',processes:[],paths:[]}));
+    const observed = await reader.read();
+    assert.equal(Object.hasOwn(observed,'stimulus_ref'),false);
+    socket.write(wire({schema,kind:'finish',session_id:begin.session_id,sequence:2}));
+    assert.equal((await reader.read()).kind,'finished');
     assert.equal((await exit)[0],0);
   });
 });
@@ -132,6 +148,17 @@ test('refuses an intermediate symlink escape from a reviewed root', async () => 
     assert.equal((await exit)[0],2);
   });
   assert.match(stderr,/path symlink escape/);
+});
+
+test('refuses a symlinked reviewed root', async () => {
+  const stderr = await session(async ({begin,socket,exit,dir}) => {
+    const alias = join(dir,'alias');
+    symlinkSync(dir,alias);
+    begin.path_roots = [alias];
+    socket.write(wire(begin));
+    assert.equal((await exit)[0],2);
+  });
+  assert.match(stderr,/root is not a canonical directory/);
 });
 
 test('records a child as absent when cleanup removes its parent after begin', async () => {
