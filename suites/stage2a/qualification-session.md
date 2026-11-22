@@ -51,8 +51,9 @@ ID are lowercase bounded tokens. Up to 16 process entries `{role,pid}` and 32
 path entries `{role,path}` are allowed. Q runs the pinned `/bin/ps` only with
 `-p <PID> -o pid= -o uid= -o gid= -o comm=` under a clean environment, never
 captures command-line arguments or file contents, and uses `lstat` only for
-paths within reviewed roots after checking the real parent path for symlink
-escape. The response is `observation` with session/challenge/sequence,
+paths within reviewed roots after checking each real parent for symlink
+escape. A parent removed during cleanup yields a bounded absent observation.
+The response is `observation` with session/challenge/sequence,
 `request_sha256` over the canonical `observe` JSON payload bytes, timestamp,
 gate/phase/event ID, and raw bounded process and path metadata. A schedules
 the expected gates/phases/events, authenticates ACP capture separately, and

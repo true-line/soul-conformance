@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { createHash, randomBytes } from 'node:crypto';
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -119,6 +119,37 @@ test('refuses paths outside A-reviewed roots', async () => {
     assert.equal((await exit)[0],2);
   });
   assert.match(stderr,/outside reviewed roots/);
+});
+
+test('refuses an intermediate symlink escape from a reviewed root', async () => {
+  const stderr = await session(async ({begin,socket,reader,exit,dir}) => {
+    symlinkSync('/etc',join(dir,'escape'));
+    socket.write(wire(begin));
+    await reader.read();
+    socket.write(wire({schema,kind:'observe',session_id:begin.session_id,sequence:1,gate:'T02',
+      phase:'file_probe',event_id:'symlink',processes:[],
+      paths:[{role:'escaped',path:join(dir,'escape','passwd')}]}));
+    assert.equal((await exit)[0],2);
+  });
+  assert.match(stderr,/path symlink escape/);
+});
+
+test('records a child as absent when cleanup removes its parent after begin', async () => {
+  await session(async ({begin,socket,reader,exit,dir}) => {
+    const parent = join(dir,'cleanup');
+    mkdirSync(parent);
+    socket.write(wire(begin));
+    await reader.read();
+    rmSync(parent,{recursive:true});
+    socket.write(wire({schema,kind:'observe',session_id:begin.session_id,sequence:1,gate:'T01',
+      phase:'after_cleanup',event_id:'missing_socket',processes:[],
+      paths:[{role:'socket',path:join(parent,'owner.sock')}]}));
+    const observed = await reader.read();
+    assert.deepEqual(observed.paths,[{role:'socket',path:join(parent,'owner.sock'),exists:false,error:'ENOENT'}]);
+    socket.write(wire({schema,kind:'finish',session_id:begin.session_id,sequence:2}));
+    assert.equal((await reader.read()).kind,'finished');
+    assert.equal((await exit)[0],0);
+  });
 });
 
 test('refuses noncanonical and changed observer bytes', async () => {
