@@ -16,8 +16,11 @@ The runner copies this template to a disposable instance, writes only the
 host-specific `Contents/host/adapters.json`, starts the pinned HQ and pinned
 production `agent-bot-souls` entry point, offers the seeded task, and gives the
 lead one turn. The specialist changes `workspaces/scratch/answer.txt`, runs the
-checked-in approved check, submits one proposal, and the lead makes the sole
-final commitment. The source template is never modified.
+checked-in approved check from `Contents/opt/quickstart-check.mjs`, and submits
+one proposal. The lead makes the sole final commitment. The adapter receives
+the pinned runtime entry and scratch directory as ordered arguments. The
+scratch directory holds the seeded issue and answer as data. The source
+template is never modified.
 
 The report identifies the exact HQ and runtime archives, platform revision,
 template digest, simulated transport/wrapper, and cooperative profile in force.
