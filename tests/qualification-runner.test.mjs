@@ -94,11 +94,14 @@ test('returns bounded process and lstat observations with transcript digest, no 
     assert.equal(observed.paths[0].exists,true);
     assert.equal(observed.paths[0].type,'file');
     assert.equal(Object.hasOwn(observed,'result'),false);
+    const observedEof = once(socket,'end');
     socket.write(wire({schema,kind:'finish',session_id:begin.session_id,sequence:2}));
     const finished = await reader.read();
     assert.equal(finished.kind,'finished');
     assert.equal(finished.observation_count,1);
     assert.equal(finished.observations_sha256,sha(wire(observed)));
+    await observedEof;
+    assert.equal(reader.buffer.length,0);
     assert.equal((await exit)[0],0);
   });
 });
