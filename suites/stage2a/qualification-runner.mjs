@@ -167,6 +167,7 @@ function probeProcess({role,pid}) {
 function probePath({role,path}, roots) {
   const root = roots.find(r => path === r.path || path.startsWith(r.path + sep));
   if (!root) fail('path outside reviewed roots');
+  const unavailable = error => ({role,path,exists:['EACCES','EPERM'].includes(error) ? null : false,error});
   // Walk each parent. A removed parent is an absent observation; a link that
   // resolves outside the reviewed root remains a hard refusal.
   const underRoot = real => real === root.real || real.startsWith(root.real + sep);
@@ -176,7 +177,7 @@ function probePath({role,path}, roots) {
     if (part) current += sep + part;
     try {
       const st = lstatSync(current);
-      if (!st.isDirectory() && !st.isSymbolicLink()) return {role,path,exists:false,error:'ENOTDIR'};
+      if (!st.isDirectory() && !st.isSymbolicLink()) return unavailable('ENOTDIR');
       let real;
       try { real = realpathSync(current); }
       catch (error) {
@@ -185,7 +186,7 @@ function probePath({role,path}, roots) {
       }
       if (!underRoot(real)) fail('path symlink escape');
     } catch (error) {
-      if (['ENOENT','EACCES','EPERM','ENOTDIR'].includes(error.code)) return {role,path,exists:false,error:error.code};
+      if (['ENOENT','EACCES','EPERM','ENOTDIR'].includes(error.code)) return unavailable(error.code);
       throw error;
     }
   }
@@ -196,7 +197,7 @@ function probePath({role,path}, roots) {
       gid:Number(st.gid),mode:Number(st.mode & 0o7777n),type};
   } catch (error) {
     if (!['ENOENT','EACCES','EPERM','ENOTDIR'].includes(error.code)) throw error;
-    return {role,path,exists:false,error:error.code};
+    return unavailable(error.code);
   }
 }
 

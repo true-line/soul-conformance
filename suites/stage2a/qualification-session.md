@@ -53,6 +53,9 @@ path entries `{role,path}` are allowed. Q runs the pinned `/bin/ps` only with
 captures command-line arguments or file contents, and uses `lstat` only for
 paths within reviewed roots after checking each real parent for symlink
 escape. A parent removed during cleanup yields a bounded absent observation.
+`ENOENT`/`ENOTDIR` mean `exists:false`; `EACCES`/`EPERM` mean
+`exists:null` (unobservable), never cleanup proof. A independently refuses a
+positive cleanup claim on an unobservable path.
 The response is `observation` with session/challenge/sequence,
 `request_sha256` over the canonical `observe` JSON payload bytes, timestamp,
 gate/phase/event ID, and raw bounded process and path metadata. A schedules

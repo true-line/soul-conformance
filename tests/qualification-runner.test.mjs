@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { createHash, randomBytes } from 'node:crypto';
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { chmodSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -149,6 +149,27 @@ test('records a child as absent when cleanup removes its parent after begin', as
     socket.write(wire({schema,kind:'finish',session_id:begin.session_id,sequence:2}));
     assert.equal((await reader.read()).kind,'finished');
     assert.equal((await exit)[0],0);
+  });
+});
+
+test('reports permission denial as unobservable rather than absent', {skip:process.getuid() === 0}, async () => {
+  await session(async ({begin,socket,reader,exit,dir}) => {
+    const parent = join(dir,'blocked');
+    mkdirSync(parent);
+    writeFileSync(join(parent,'child'),'sample');
+    socket.write(wire(begin));
+    await reader.read();
+    chmodSync(parent,0);
+    try {
+      socket.write(wire({schema,kind:'observe',session_id:begin.session_id,sequence:1,gate:'T01',
+        phase:'after_cleanup',event_id:'denied_path',processes:[],
+        paths:[{role:'socket',path:join(parent,'child')}]}));
+      const observed = await reader.read();
+      assert.deepEqual(observed.paths,[{role:'socket',path:join(parent,'child'),exists:null,error:'EACCES'}]);
+      socket.write(wire({schema,kind:'finish',session_id:begin.session_id,sequence:2}));
+      assert.equal((await reader.read()).kind,'finished');
+      assert.equal((await exit)[0],0);
+    } finally { chmodSync(parent,0o700); }
   });
 });
 
