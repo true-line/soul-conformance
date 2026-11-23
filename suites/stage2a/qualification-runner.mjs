@@ -108,7 +108,8 @@ function absolutePath(path) {
 function begin(value) {
   keys(value, ['schema','kind','session_id','challenge_base64url','cohort_id','installation_id','soul_id',
     'start_id','host_id','profile','reservation_sha256','test_plan_sha256','suite_revision',
-    'q_uid','q_gid','deadline_at','path_roots','ps_sha256']);
+    'q_uid','q_gid','deadline_at','path_roots','ps_sha256',
+    ...(value.require_argv_proof === true ? ['require_argv_proof'] : [])]);
   if (value.schema !== SCHEMA || value.kind !== 'begin' || !HEX32.test(value.session_id) ||
       !/^[A-Za-z0-9_-]{43}$/.test(value.challenge_base64url) ||
       Buffer.from(value.challenge_base64url, 'base64url').toString('base64url') !== value.challenge_base64url ||
@@ -214,7 +215,8 @@ async function main() {
     const challenge_sha256 = state.challengeHash;
     const source_sha256 = hash(readFileSync(fileURLToPath(import.meta.url)));
     await channel.send({schema:SCHEMA,kind:'ready',session_id:session,challenge_sha256,sequence:0,
-      pid:process.pid,uid:process.getuid(),gid:process.getgid(),source_sha256,captured_at:new Date().toISOString()});
+      pid:process.pid,uid:process.getuid(),gid:process.getgid(),source_sha256,captured_at:new Date().toISOString(),
+      ...(first.require_argv_proof === true ? {exec_path:process.execPath, argv:[process.argv0,...process.argv.slice(1)]} : {})});
     let sequence = 1;
     let count = 0;
     const transcript = createHash('sha256');
