@@ -115,6 +115,8 @@ test('returns bounded process and lstat observations with transcript digest, no 
     assert.equal(ready.kind,'ready');
     assert.equal(ready.uid,process.getuid());
     assert.equal(ready.source_sha256,sha(readFileSync(runner)));
+    assert.equal(Object.hasOwn(ready,'exec_path'),false);
+    assert.equal(Object.hasOwn(ready,'argv'),false);
     const request = {schema,kind:'observe',session_id:begin.session_id,sequence:1,gate:'T02',
       phase:'file_probe',event_id:'sample_1',processes:[{role:'q',pid:child.pid}],paths:[{role:'sample',path:file}],
       stimulus_ref:{uri:'capture:sample-1',sha256:sha('capture bytes')}};
@@ -135,6 +137,21 @@ test('returns bounded process and lstat observations with transcript digest, no 
     assert.equal(finished.observations_sha256,sha(wire(observed)));
     await observedEof;
     assert.equal(reader.buffer.length,0);
+    assert.equal((await exit)[0],0);
+  });
+});
+
+test('challenge-bound ready includes exact process argv when requested', async () => {
+  await session(async ({begin,socket,reader,exit,runner,dir}) => {
+    begin.require_argv_proof = true;
+    socket.write(wire(begin));
+    const ready = await reader.read();
+    assert.equal(ready.kind,'ready');
+    assert.equal(ready.exec_path,process.execPath);
+    assert.deepEqual(ready.argv.slice(1),[runner,'--connect',join(dir,'a.sock')]);
+    assert.equal(ready.challenge_sha256,sha(Buffer.from(begin.challenge_base64url,'base64url')));
+    socket.write(wire({schema,kind:'finish',session_id:begin.session_id,sequence:1}));
+    assert.equal((await reader.read()).kind,'finished');
     assert.equal((await exit)[0],0);
   });
 });
