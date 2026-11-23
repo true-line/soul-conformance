@@ -32,9 +32,11 @@ accepted. `sha256:` values use lowercase hex. The protocol schema is
 response, heartbeat, refusal and finish frame bytes/hashes; Q's transcript
 digest alone cannot establish completeness.
 
-`begin` has exactly `schema,kind,session_id,challenge_base64url,cohort_id,
+`begin` has `schema,kind,session_id,challenge_base64url,cohort_id,
 installation_id,soul_id,start_id,host_id,profile,reservation_sha256,
 test_plan_sha256,suite_revision,q_uid,q_gid,deadline_at,path_roots,ps_sha256`.
+An explicitly reviewed cross-UID argv proof adds exactly `require_argv_proof:true`;
+absent is the default, and a present false value is refused.
 `session_id` is 32 lowercase hex; challenge is 32 random bytes as unpadded
 base64url; profile is `managed-protected` or `managed-cooperative`; deadline is
 UTC RFC 3339, at most one hour ahead. `path_roots` is 1–16 absolute, canonical,
@@ -42,10 +44,16 @@ owner-reviewed canonical directory paths, each at most 512 ASCII characters;
 symlinked roots are refused. A derives them from the signed test plan. Q
 verifies its UID/GID, the fixed observer digest in the legacy-named
 `ps_sha256` field, root existence and the deadline.
-Q's `ready` response has exactly `schema,
+Q's ordinary `ready` response has exactly `schema,
 kind,session_id,challenge_sha256,sequence:0,pid,uid,gid,source_sha256,
-captured_at`. `source_sha256` and self-reported identity are corroborative only;
-A measures the actual installed files and peer independently.
+captured_at`. When `require_argv_proof:true` is in the reviewed `begin`,
+`ready` also contains `exec_path` and the complete ordered `argv` array.
+A compares those fields to its exact reviewed Q command in the same
+challenge-bound session while independently checking the live peer PID,
+credentials, process generation, executable path, installed files and launchd
+custody. The default path still requires A's kernel argv observation.
+`source_sha256` and self-reported identity remain corroborative only; this
+exchange alone certifies no physical T result.
 
 After `ready`, A sends `observe`, `heartbeat`, or `finish` with strictly
 increasing `sequence` 1–1024 and the same session ID. `observe` has exactly
