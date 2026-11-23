@@ -8,6 +8,8 @@ import { isAbsolute, normalize, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const SCHEMA = 'soul-conformance/qualification-session/v1';
+// ps_sha256 names the fixed ps-compatible observer format on the v1 wire.
+const PROCESS_OBSERVER = '/private/var/db/managed-machine/qualification-q/process-observer';
 const MAX_FRAME = 65536;
 const MAX_OBSERVATIONS = 128;
 const DIGEST = /^sha256:[0-9a-f]{64}$/;
@@ -122,7 +124,7 @@ function begin(value) {
   if (!ascii(value.deadline_at,32) || !/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d{3})?Z$/.test(value.deadline_at) ||
       !Number.isFinite(deadline) || deadline <= now || deadline > now + 3600000) fail('invalid deadline');
   if (process.getuid() !== value.q_uid || process.getgid() !== value.q_gid) fail('Q identity mismatch');
-  if (hash(readFileSync('/bin/ps')) !== value.ps_sha256) fail('observer digest mismatch');
+  if (hash(readFileSync(PROCESS_OBSERVER)) !== value.ps_sha256) fail('observer digest mismatch');
   const roots = value.path_roots.map(path => {
     if (!lstatSync(path).isDirectory() || realpathSync(path) !== path) fail('root is not a canonical directory');
     return { path, real:path };
@@ -155,12 +157,12 @@ function validateRequest(value, session, sequence, kind) {
 }
 
 function probeProcess({role,pid}) {
-  const result = spawnSync('/bin/ps',['-p',String(pid),'-o','pid=','-o','uid=','-o','gid=','-o','comm='],
+  const result = spawnSync(PROCESS_OBSERVER,['-p',String(pid),'-o','pid=','-o','uid=','-o','gid=','-o','comm='],
     {encoding:'utf8',env:{PATH:'/usr/bin:/bin',LC_ALL:'C'},timeout:3000,maxBuffer:2048,stdio:['ignore','pipe','pipe']});
-  if (result.error || result.status === null) fail('ps failed');
+  if (result.error || result.status === null) fail('process observer failed');
   const stdout = result.stdout ?? '';
   const stderr = result.stderr ?? '';
-  if (stdout.length > 2048 || stderr.length > 2048 || !ASCII.test(stdout) || !ASCII.test(stderr)) fail('ps output outside ASCII bound');
+  if (stdout.length > 2048 || stderr.length > 2048 || !ASCII.test(stdout) || !ASCII.test(stderr)) fail('process observer output outside ASCII bound');
   return {role,pid,status:result.status,stdout,stderr};
 }
 

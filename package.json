@@ -1,6 +1,6 @@
 {
   "name": "soul-conformance",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": true,
   "license": "MIT",
   "description": "Independent Soul conformance suites and scoped evidence runners; protected Stage 2a remains open",

@@ -12,7 +12,9 @@ stimuli, refusals and receipts before any positive qualification report.
 A creates an A-owned private session directory and a fresh one-use Unix
 listener. The installation plan pins the actual dedicated nonadmin Q UID/GID,
 the absolute Node executable and its digest, this single source file and its
-digest, `/bin/ps` and its digest, and the directory/socket modes or ACLs. A
+digest, the non-setuid process observer at
+`/private/var/db/managed-machine/qualification-q/process-observer` and its
+digest, and the directory/socket modes or ACLs. A
 spawns exactly `node qualification-runner.mjs --connect <socket>` under Q and
 accepts one fresh connection. Before `begin`, A checks the kernel peer PID and
 UID, live primary GID, exact child executable/argv/source hashes and one-use
@@ -38,7 +40,8 @@ base64url; profile is `managed-protected` or `managed-cooperative`; deadline is
 UTC RFC 3339, at most one hour ahead. `path_roots` is 1–16 absolute, canonical,
 owner-reviewed canonical directory paths, each at most 512 ASCII characters;
 symlinked roots are refused. A derives them from the signed test plan. Q
-verifies its UID/GID, the `/bin/ps` digest, root existence and the deadline.
+verifies its UID/GID, the fixed observer digest in the legacy-named
+`ps_sha256` field, root existence and the deadline.
 Q's `ready` response has exactly `schema,
 kind,session_id,challenge_sha256,sequence:0,pid,uid,gid,source_sha256,
 captured_at`. `source_sha256` and self-reported identity are corroborative only;
@@ -49,7 +52,8 @@ increasing `sequence` 1–1024 and the same session ID. `observe` has exactly
 `schema,kind,session_id,sequence,gate,phase,event_id,processes,paths`, with
 optional `stimulus_ref:{uri,sha256}`. Gate is T01/T02/T03/T21; phase and event
 ID are lowercase bounded tokens. Up to 16 process entries `{role,pid}` and 32
-path entries `{role,path}` are allowed. Q runs the pinned `/bin/ps` only with
+path entries `{role,path}` are allowed. Q runs the pinned non-setuid observer
+only with
 `-p <PID> -o pid= -o uid= -o gid= -o comm=` under a clean environment, never
 captures command-line arguments or file contents, and uses `lstat` only for
 paths within reviewed roots after checking each real parent for symlink
