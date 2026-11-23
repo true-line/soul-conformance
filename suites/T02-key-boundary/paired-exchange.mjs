@@ -1,6 +1,12 @@
 import { createHash, createPublicKey, verify } from 'node:crypto';
 
 const DRIVER_SCHEMA = 'agent-bot-machine/qualification-owner-driver/v1';
+const OUTAGE_PURPOSE = 'agent-bot-hq/t02-machine-outage/v1';
+const CASES = new Map([
+  ['paired-operation', ['live-start', 'live-restart']],
+  ['machine-outage-refused', ['machine-outage']],
+  ['pairing-revoked-refused', ['pairing-revoked']],
+]);
 const AUDIENCE = 'https://agents.true-line.ai/oauth/device_authorization';
 const ED25519_SPKI = Buffer.from('302a300506032b6570032100', 'hex');
 const digest = /^sha256:[a-f0-9]{64}$/;
@@ -39,7 +45,7 @@ function verifyEd25519(pinnedKey, value, signature) {
 
 // Bind the existing Machine nonce to A's exact framed command payload. A
 // supplies those bytes from its own transcript, without the length prefix.
-export function pairedCaseNonce(commandBytes) {
+function parsePairedCase(commandBytes) {
   requireValid(Buffer.isBuffer(commandBytes) && commandBytes.length <= 8192, 'invalid A command bytes');
   const command = compactObject(commandBytes.toString('ascii'));
   requireValid(commandBytes.equals(Buffer.from(JSON.stringify(command), 'ascii'))
@@ -51,11 +57,16 @@ export function pairedCaseNonce(commandBytes) {
     && digest.test(command.reservation_sha256) && digest.test(command.test_plan_sha256)
     && Number.isInteger(command.sequence) && command.sequence > 0 && command.sequence <= 1024
     && command.profile === 'managed-protected' && command.gate === 'T02'
-    && ['live-start', 'live-restart'].includes(command.phase) && command.event === 'paired-operation',
-  'invalid paired-operation command');
+    && CASES.get(command.event)?.includes(command.phase),
+  'invalid paired operation command');
   decode(command.challenge_base64url, 'base64url', 32);
-  return createHash('sha256').update('soul-conformance/T02/paired-operation/v1\0')
+  const nonce = createHash('sha256').update('soul-conformance/T02/paired-operation/v1\0')
     .update(commandBytes).digest().subarray(0, 16).toString('base64url');
+  return { nonce, event: command.event };
+}
+
+export function pairedCaseNonce(commandBytes) {
+  return parsePairedCase(commandBytes).nonce;
 }
 
 function verifyProof(body, timestamp, expectedEpoch) {
@@ -90,10 +101,9 @@ function verifyProof(body, timestamp, expectedEpoch) {
 // supplies independently pinned HQ and Machine keys, pairing epoch and A's
 // observation clock. Hardware, executing UID and offline status still need
 // independent OS evidence from A.
-export function verifyPairedExchange({ commandBytes, requestRaw, responseRaw, hqKey, machineKey, expectedEpoch, observedAt }) {
-  const nonce = pairedCaseNonce(commandBytes);
+export function verifyPairedExchange({ commandBytes, requestRaw, responseRaw, outageSignature, hqKey, machineKey, expectedEpoch, observedAt }) {
+  const { nonce, event } = parsePairedCase(commandBytes);
   const request = compactObject(requestRaw);
-  const response = compactObject(responseRaw);
   const timestamp = (t) => Number.isSafeInteger(t) && Math.abs(t - observedAt) <= 120;
   requireValid(Number.isSafeInteger(observedAt) && typeof expectedEpoch === 'string' && epoch.test(expectedEpoch)
     && Buffer.isBuffer(hqKey) && Buffer.isBuffer(machineKey) && !hqKey.equals(machineKey),
@@ -104,13 +114,34 @@ export function verifyPairedExchange({ commandBytes, requestRaw, responseRaw, hq
   verifyEd25519(hqKey, ['hq-device', '', 'enrollment-proof', '', '', '', '', '', request.timestamp,
     nonce, 'hq_epoch', expectedEpoch].join('\n'), request.signature);
 
+  if (event === 'machine-outage-refused') {
+    requireValid(responseRaw === undefined, 'unexpected response during Machine outage');
+    const requestHash = createHash('sha256').update(requestRaw).digest('hex');
+    verifyEd25519(hqKey, [OUTAGE_PURPOSE, requestHash, 'machine-unreachable'].join('\n'), outageSignature);
+    return Object.freeze({ requestNonce: nonce, refusal: 'machine-unreachable' });
+  }
+
+  requireValid(outageSignature === undefined, 'outage evidence does not belong to this case');
+  const response = compactObject(responseRaw);
+  const replyFields = ['ok', 'timestamp', 'nonce', 'request_nonce', 'signature'];
+  requireValid(response.request_nonce === nonce && timestamp(response.timestamp)
+    && response.timestamp >= request.timestamp && typeof response.nonce === 'string'
+    && /^[A-Za-z0-9_-]{1,128}$/.test(response.nonce), 'unexpected signed Machine response');
+  if (event === 'pairing-revoked-refused') {
+    requireValid(exact(response, [...replyFields, 'diagnostic', 'message']) && response.ok === false
+      && ['MM_DAEMON_PEER_REFUSED', 'MM_DAEMON_UNKNOWN_KEY'].includes(response.diagnostic)
+      && typeof response.message === 'string' && !/[\r\n]/.test(response.message), 'unexpected pairing refusal');
+    verifyEd25519(machineKey, [false, response.diagnostic, response.message, '', '', response.timestamp,
+      response.nonce, nonce].join('\n'), response.signature);
+    // The diagnostic proves a refused paired request. A separately observes
+    // revocation of the exact pairing and the absence of signing side effects.
+    return Object.freeze({ requestNonce: nonce, refusal: response.diagnostic });
+  }
+
   // Go authenticates the exact raw JSON body. The compact-object check
   // guarantees the reconstructed body has the same bytes as the wire.
-  requireValid(exact(response, ['ok', 'state', 'body', 'timestamp', 'nonce', 'request_nonce', 'signature'])
-    && response.ok === true && response.state === 'proved' && response.request_nonce === nonce
-    && timestamp(response.timestamp) && response.timestamp >= request.timestamp
-    && typeof response.nonce === 'string' && /^[A-Za-z0-9_-]{1,128}$/.test(response.nonce),
-  'unexpected signed Machine response');
+  requireValid(exact(response, [...replyFields, 'state', 'body'])
+    && response.ok === true && response.state === 'proved', 'unexpected signed Machine response');
   verifyEd25519(machineKey, [true, '', '', 'proved', JSON.stringify(response.body), response.timestamp,
     response.nonce, nonce].join('\n'), response.signature);
   const jti = verifyProof(response.body, response.timestamp, expectedEpoch);
