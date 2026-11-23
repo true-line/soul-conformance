@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "tag": "v0.2.1",
+  "workflows": [
+    {
+      "path": ".github/workflows/t14.yml",
+      "jobs": ["t14", "macos-t21", "macos-paired-members", "macos-quickstart"]
+    },
+    {
+      "path": ".github/workflows/first-hq-approval.yml",
+      "jobs": ["interop"]
+    },
+    {
+      "path": ".github/workflows/paired-hq-recovery.yml",
+      "jobs": ["interop"]
+    }
+  ]
+}
