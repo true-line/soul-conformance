@@ -1,14 +1,16 @@
 import assert from 'node:assert/strict';
-import { spawn } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { createHash, randomBytes } from 'node:crypto';
-import { chmodSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { chmodSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, statSync, symlinkSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { once } from 'node:events';
 import { test } from 'node:test';
 
-const runner = new URL('../suites/stage2a/qualification-runner.mjs', import.meta.url).pathname;
+const runnerSource = new URL('../suites/stage2a/qualification-runner.mjs', import.meta.url).pathname;
+const observerSource = new URL('../suites/stage2a/qualification-process-observer.c', import.meta.url).pathname;
+const fixedObserver = "const PROCESS_OBSERVER = '/private/var/db/managed-machine/qualification-q/process-observer';";
 const schema = 'soul-conformance/qualification-session/v1';
 const sha = bytes => 'sha256:' + createHash('sha256').update(bytes).digest('hex');
 const canonical = value => JSON.stringify(value, (_, x) =>
@@ -46,6 +48,19 @@ async function session(run) {
   const dir = realpathSync(mkdtempSync(join(tmpdir(),'q-observer-')));
   const file = join(dir,'sample');
   const socketPath = join(dir,'a.sock');
+  const observer = join(dir,'process-observer');
+  const runner = join(dir,'qualification-runner.mjs');
+  if (process.platform === 'darwin') {
+    const built = spawnSync('cc',['-Wall','-Wextra','-Werror','-O2',observerSource,'-o',observer],
+      {encoding:'utf8',timeout:30000});
+    assert.equal(built.status,0,built.stderr || String(built.error));
+  } else {
+    writeFileSync(observer,'#!/bin/sh\nexec /bin/ps "$@"\n',{mode:0o755});
+  }
+  const source = readFileSync(runnerSource,'utf8');
+  assert.equal(source.split(fixedObserver).length,2,'fixed production observer path changed');
+  writeFileSync(runner,source.replace(fixedObserver,
+    `const PROCESS_OBSERVER = ${JSON.stringify(observer)};`));
   writeFileSync(file,'sample');
   const server = createServer();
   server.listen(socketPath);
@@ -62,9 +77,9 @@ async function session(run) {
     cohort_id:'cohort',installation_id:'install',soul_id:'soul',start_id:'start',host_id:'host',
     profile:'managed-protected',reservation_sha256:sha('reservation'),test_plan_sha256:sha('plan'),
     suite_revision:'b'.repeat(40),q_uid:process.getuid(),q_gid:process.getgid(),
-    deadline_at:new Date(Date.now()+300000).toISOString(),path_roots:[dir],ps_sha256:sha(readFileSync('/bin/ps')),
+    deadline_at:new Date(Date.now()+300000).toISOString(),path_roots:[dir],ps_sha256:sha(readFileSync(observer)),
   };
-  try { await run({begin,reader,socket,child,exit,file,dir}); }
+  try { await run({begin,reader,socket,child,exit,file,dir,runner,observer}); }
   finally {
     socket.destroy();
     child.kill();
@@ -75,8 +90,26 @@ async function session(run) {
   return stderr;
 }
 
+test('native process observer has fixed arguments and no privilege bit', {skip:process.platform !== 'darwin'}, () => {
+  const dir = realpathSync(mkdtempSync(join(tmpdir(),'q-native-observer-')));
+  const observer = join(dir,'process-observer');
+  try {
+    const built = spawnSync('cc',['-Wall','-Wextra','-Werror','-O2',observerSource,'-o',observer],
+      {encoding:'utf8',timeout:30000});
+    assert.equal(built.status,0,built.stderr || String(built.error));
+    assert.equal(statSync(observer).mode & 0o6000,0,'observer must not be setuid or setgid');
+    const args = ['-p',String(process.pid),'-o','pid=','-o','uid=','-o','gid=','-o','comm='];
+    const observed = spawnSync(observer,args,{encoding:'utf8',timeout:3000});
+    assert.equal(observed.status,0,observed.stderr || String(observed.error));
+    assert.match(observed.stdout,new RegExp(`^${process.pid} ${process.getuid()} ${process.getgid()} /[^\\n]+\\n$`));
+    assert.equal(spawnSync(observer,[...args,'extra']).status,64);
+    assert.equal(spawnSync(observer,['-p','01',...args.slice(2)]).status,64);
+    assert.equal(spawnSync(observer,['-p','1','-o','pid=','-o','uid=','-o','gid=','-o','args=']).status,64);
+  } finally { rmSync(dir,{recursive:true,force:true}); }
+});
+
 test('returns bounded process and lstat observations with transcript digest, no verdict', async () => {
-  await session(async ({begin,reader,socket,child,exit,file}) => {
+  await session(async ({begin,reader,socket,child,exit,file,runner}) => {
     socket.write(wire(begin));
     const ready = await reader.read();
     assert.equal(ready.kind,'ready');

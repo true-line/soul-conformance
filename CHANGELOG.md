@@ -1,6 +1,9 @@
 # Changelog
 
 ## Unreleased
+
+## 0.2.1 — 2026-11-22
+- Replace Q's privileged `/bin/ps` dependency with an exact-digest, non-setuid native process observer at a fixed A-managed path. Preserve the v1 `ps_sha256` wire field and fail closed when the installed helper is absent or changed.
 - Add scoped Stage 2a cooperative host evidence and paired T02/T21 observers, while keeping the protected stage gate explicitly incomplete until declared-host acceptance evidence exists.
 - Document the exact boundary between current Stage 2a supporting checks and the T01/T02/T03/T21 release requirements.
 - Replace the `hello.soul` placeholder with a runnable, credential-free package and fail-closed quickstart evidence through the pinned production HQ and Soul runtime.
