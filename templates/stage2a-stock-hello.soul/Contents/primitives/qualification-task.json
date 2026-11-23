@@ -1,0 +1,6 @@
+{
+  "operation_id": "stage2a_stock_messages_first_turn",
+  "objective": "Return the fixture response.",
+  "done_criteria": "The first stock ACP turn reaches the assigned local test service and returns its pinned response.",
+  "write_scope": []
+}

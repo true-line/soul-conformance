@@ -1,0 +1,15 @@
+{
+  "adapter_id": "claude-code",
+  "adapter_version": "0.109.0",
+  "source_repository": "agentclientprotocol/claude-agent-acp",
+  "source_tag": "v0.109.0",
+  "source_commit": "9f1ca6eb9c65c2f5d1bbf48335af42947ddb74d6",
+  "source_tree": "f7d42951a63c708567a4ef4f0f70275c735ed7b6",
+  "release_asset": "claude-agent-acp-darwin-arm64.zip",
+  "release_asset_sha256": "sha256:603fdb593f00335a996986f9ed9f8a84928dad4b20e08b25862782fd770b2a28",
+  "executable": "claude-agent-acp",
+  "executable_sha256": "sha256:2d48a3f9ee728def1365e89bbd0571141a607ae281344999b0349ab209bc4d39",
+  "adjacent_cli": "claude",
+  "adjacent_cli_sha256": "sha256:e85547190ef8cd983033ba61b17194045a6fea00035da349efeabed86badacc9",
+  "model": "claude-haiku-4-5-20251001"
+}
