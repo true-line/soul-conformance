@@ -30,12 +30,24 @@ int main(int argc, char **argv) {
     if (sysctl(selector,4,&process,&length,NULL,0) != 0) return 2;
     if (length == 0) return 1;
     if (length != sizeof process || process.kp_proc.p_pid != pid || process.kp_eproc.e_ucred.cr_ngroups == 0) return 2;
-    char executable[PROC_PIDPATHINFO_MAXSIZE];
+    char executable[PROC_PIDPATHINFO_MAXSIZE] = {0};
     int n = proc_pidpath((int)pid, executable, sizeof executable);
-    if (n <= 0 || n >= 1536 || executable[0] != '/') return 2;
+    if (n <= 0 || n >= 1536 || executable[0] != '/' ||
+        memchr(executable,'\0',(size_t)n) != NULL) return 2;
     for (int i = 0; i < n; i++) {
         if ((unsigned char)executable[i] < 0x20 || (unsigned char)executable[i] > 0x7e) return 2;
     }
-    printf("%ld %u %u %s\n",pid,process.kp_eproc.e_ucred.cr_uid,process.kp_eproc.e_ucred.cr_groups[0],executable);
+    // The PID can be reused between the credential and path queries. Refuse
+    // a mixed observation if its process generation or identity changed.
+    struct kinfo_proc after;
+    size_t after_length = sizeof after;
+    if (sysctl(selector,4,&after,&after_length,NULL,0) != 0 || after_length != sizeof after ||
+        after.kp_proc.p_pid != pid || after.kp_eproc.e_ucred.cr_ngroups == 0 ||
+        after.kp_proc.p_starttime.tv_sec != process.kp_proc.p_starttime.tv_sec ||
+        after.kp_proc.p_starttime.tv_usec != process.kp_proc.p_starttime.tv_usec ||
+        after.kp_eproc.e_ucred.cr_uid != process.kp_eproc.e_ucred.cr_uid ||
+        after.kp_eproc.e_ucred.cr_groups[0] != process.kp_eproc.e_ucred.cr_groups[0]) return 2;
+    if (printf("%ld %u %u %.*s\n",pid,process.kp_eproc.e_ucred.cr_uid,
+        process.kp_eproc.e_ucred.cr_groups[0],n,executable) < 0 || fflush(stdout) != 0) return 2;
     return 0;
 }
