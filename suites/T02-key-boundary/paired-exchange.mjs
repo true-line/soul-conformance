@@ -62,7 +62,7 @@ function parsePairedCase(commandBytes) {
   decode(command.challenge_base64url, 'base64url', 32);
   const nonce = createHash('sha256').update('soul-conformance/T02/paired-operation/v1\0')
     .update(commandBytes).digest().subarray(0, 16).toString('base64url');
-  return { nonce, event: command.event };
+  return { nonce, event: command.event, command };
 }
 
 export function pairedCaseNonce(commandBytes) {
@@ -147,4 +147,25 @@ export function verifyPairedExchange({ commandBytes, requestRaw, responseRaw, ou
   const jti = verifyProof(response.body, response.timestamp, expectedEpoch);
   return Object.freeze({ epoch: expectedEpoch, thumbprint: response.body.thumbprint,
     generation: response.body.generation, requestNonce: nonce, jti });
+}
+
+// Both commands must be retrieved from A's independently authenticated
+// transcripts. Their reservations, Q sessions and challenges are one-use.
+export function verifyPairedRestart(before, after) {
+  const initial = parsePairedCase(before.commandBytes).command;
+  const restarted = parsePairedCase(after.commandBytes).command;
+  requireValid(initial.phase === 'live-start' && restarted.phase === 'live-restart'
+    && initial.event === 'paired-operation' && restarted.event === initial.event
+    && initial.installation_id === restarted.installation_id && initial.test_plan_sha256 === restarted.test_plan_sha256
+    && initial.session_id !== restarted.session_id && initial.start_id !== restarted.start_id
+    && initial.reservation_sha256 !== restarted.reservation_sha256
+    && initial.challenge_base64url !== restarted.challenge_base64url
+    && after.observedAt > before.observedAt, 'restart requires a later independent reservation and Q session');
+  const first = verifyPairedExchange(before);
+  const second = verifyPairedExchange(after);
+  requireValid(before.hqKey.equals(after.hqKey) && before.machineKey.equals(after.machineKey)
+    && first.epoch === second.epoch && first.generation === second.generation
+    && first.thumbprint === second.thumbprint && first.requestNonce !== second.requestNonce
+    && first.jti !== second.jti, 'restart requires a fresh proof under the same pairing and hardware key');
+  return Object.freeze({ before: first, after: second });
 }
