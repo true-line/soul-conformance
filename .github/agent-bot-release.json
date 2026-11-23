@@ -4,7 +4,7 @@
   "workflows": [
     {
       "path": ".github/workflows/t14.yml",
-      "jobs": ["t14", "macos-t21", "macos-paired-members", "macos-quickstart"]
+      "jobs": ["t14", "macOS cooperative T21 archive receipts", "macOS signed members-plan lookup", "macOS owner quickstart"]
     },
     {
       "path": ".github/workflows/first-hq-approval.yml",
